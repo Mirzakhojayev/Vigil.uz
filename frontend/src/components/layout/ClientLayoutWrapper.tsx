@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { RefreshCw } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { LanguageProvider } from '@/context/LanguageContext';
 
 export default function ClientLayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -16,12 +17,12 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
 
   useEffect(() => {
     if (isLoginPage) {
-      document.body.classList.remove('overflow-hidden', 'flex');
+      document.body.classList.remove('overflow-hidden');
       document.body.classList.add('overflow-y-auto');
       setChecking(false);
       return;
     } else {
-      document.body.classList.add('overflow-hidden', 'flex');
+      document.body.classList.add('overflow-hidden');
       document.body.classList.remove('overflow-y-auto');
     }
 
@@ -47,22 +48,30 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
   }
 
   if (isLoginPage) {
-    return <ThemeProvider>{children}</ThemeProvider>;
+    return (
+      <ThemeProvider>
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
+      </ThemeProvider>
+    );
   }
 
   return (
     <ThemeProvider>
-      <div className="h-full w-full flex overflow-hidden">
-        {/* Sidebar Nav */}
-        <Sidebar />
+      <LanguageProvider>
+        <div className="h-full w-full flex overflow-hidden">
+          {/* Sidebar Nav */}
+          <Sidebar />
 
-        {/* Main Content Area */}
-        <main className="flex-1 pl-60 flex flex-col h-full overflow-hidden">
-          <div className="flex-1 overflow-y-auto px-8 py-8">
-            {children}
-          </div>
-        </main>
-      </div>
+          {/* Main Content Area */}
+          <main className="flex-1 pl-60 flex flex-col h-full overflow-hidden">
+            <div className="flex-1 overflow-y-auto px-8 py-8">
+              {children}
+            </div>
+          </main>
+        </div>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }
