@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Lock, AlertCircle, ChevronRight } from 'lucide-react';
+import { User, Lock, AlertCircle, ChevronRight, X } from 'lucide-react';
 import { useI18n } from '@/i18n/I18nProvider';
 
 interface LoginModalProps {
@@ -126,7 +126,7 @@ export default function LoginModal({ onClose }: LoginModalProps) {
         `}} />
 
         {/* Close */}
-        <button className="lm-close" onClick={onClose} title="Close">✕</button>
+        <button className="lm-close" onClick={onClose} title="Close"><X size={16} /></button>
 
         {/* Top accent bar */}
         <div style={{

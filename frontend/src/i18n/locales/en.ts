@@ -17,7 +17,7 @@ export const en = {
     title: 'The first Action & Risk layer that plugs directly into your existing financial workflow.',
     body: 'No new cards. No infrastructure changes. Just total visibility — protecting your margins in real-time before errors exit your ERP.',
     bookDemo: 'Book a Demo →',
-    watchOverview: '▶ Watch 2-min Overview',
+    watchOverview: 'Watch 2-min Overview',
     trust: {
       noCard: 'No credit card required',
       soc2: 'SOC2 Compliant',
@@ -33,7 +33,7 @@ export const en = {
     title: "A unified system that doesn't just watch your data — it acts on it.",
     body: 'Protecting your margins in real-time with two complementary intelligence layers working in parallel.',
     action: {
-      badge: '✦ Action Layer',
+      badge: 'Action Layer',
       title: 'Automated workflows that resolve discrepancies fast.',
       body: 'From flagging to resolution — without a single manual email.',
       items: [
@@ -52,7 +52,7 @@ export const en = {
       ],
     },
     risk: {
-      badge: '◉ Risk Layer',
+      badge: 'Risk Layer',
       title: 'Continuous risk intelligence across your entire supply chain.',
       body: 'ML-powered anomaly detection that catches what human auditors miss.',
       items: [
@@ -86,8 +86,8 @@ export const en = {
       risks: 'RISKS',
       warnings: 'WARNINGS',
     },
-    scan: '⚡ SCAN ERP',
-    scanning: '⚡ SCANNING...',
+    scan: 'SCAN ERP',
+    scanning: 'SCANNING...',
     scanningMsg: 'Scanning ERP transactions in real-time...',
     scanComplete: (id: string) => `Scan complete: New duplicate payment attempt blocked (${id})!`,
     table: {
@@ -114,17 +114,14 @@ export const en = {
     body: "Vigil was built for teams that can't afford a six-month implementation cycle. We sit quietly atop your existing tech stack, ingesting data without requiring a single line of custom code.",
     items: [
       {
-        icon: '🔗',
         title: 'ERP Agnostic',
         body: 'Works with NetSuite, SAP, Oracle, and Microsoft Dynamics out of the box.',
       },
       {
-        icon: '✉',
         title: 'Email Integration',
         body: 'Direct hooks into Outlook and Gmail to process supplier communications automatically.',
       },
       {
-        icon: '🛡',
         title: 'Bank-Grade Security',
         body: 'SOC2 Type II compliant with end-to-end AES-256 encryption across all data flows.',
       },
@@ -132,15 +129,67 @@ export const en = {
     statUnit: 'Hours Setup',
   },
   testimonial: {
-    quote: '"Before Vigil, our audit cycle was entirely reactive. We were finding errors three months too late. Now, anomalies are caught before the payment run even begins. We\'ve reduced manual audit time by 90%."',
-    name: 'Sarah Chen',
-    role: 'VP of Finance, SwiftFlow Logistics',
+    label: 'Why teams choose Vigil',
+    title: 'Proof over promises.',
+    stats: [
+      { label: 'Deployment' },
+      { label: 'Risk monitoring' },
+      { label: 'Data encryption' },
+      { label: 'Compliance' },
+    ],
+    quotes: [
+      { quote: 'A duplicate payment was blocked in seconds — before it ever left our ERP.', role: 'CFO, mid-market logistics' },
+      { quote: 'We were live in two days, without writing a single line of custom code.', role: 'Head of Procurement' },
+      { quote: 'Manual audit time dropped sharply once anomalies were caught up front.', role: 'Finance Controller' },
+    ],
   },
   cta: {
     title: 'Stop losing margins to financial leaders using autonomous oversight to reclaim their edge.',
     body: 'Join the supply chain finance teams already using Vigil to protect every dollar in their operations.',
     schedule: 'Schedule Your Demo',
     talk: 'Talk to an Expert',
+  },
+  dashboard: {
+    loading: 'Loading dashboard…',
+    header: {
+      title: 'Procurement Operations',
+      desc: 'Autonomous audit checks, pricing analysis, and supplier follow-ups.',
+    },
+    actions: {
+      runAudit: 'Run Audit',
+      runAgent: 'Run Agent',
+    },
+    banners: {
+      auditOk: 'Full financial audit completed. Invoices risk-scored and flagged.',
+      auditErr: (message: string) => `Audit scan failed: ${message}`,
+      agentOk: (count: number) => `Agent cycle complete — ${count} reminder(s) drafted.`,
+      agentErr: (message: string) => `Agent run failed: ${message}`,
+    },
+    kpis: {
+      total: { name: 'Total Audited', desc: 'Invoices in system' },
+      pending: { name: 'Needs Attention', desc: 'Pending human review' },
+      approved: { name: 'Auto-Approved', desc: 'Risk score < 15' },
+      spend: { name: 'Spend Under Review', desc: 'Escalated / Pending' },
+    },
+    rag: {
+      title: 'Ask Vigil RAG Assistant',
+      desc: 'Retrieve financial details using semantic search or direct SQL queries. Try:',
+      example1: 'Who has had price anomalies recently?',
+      example2: 'What is the total spend on electronics?',
+      cta: 'Open Chat Assistant',
+    },
+    severity: {
+      title: 'Anomalies by Severity',
+      critical: 'Critical',
+      high: 'High',
+      medium: 'Medium',
+      low: 'Low',
+    },
+    activity: {
+      title: 'Recent Activity',
+      viewAll: 'View all logs →',
+      empty: 'No activity yet. Run an audit scan or re-seed the database.',
+    },
   },
   footer: {
     brandDesc: 'The autonomous command center for modern supply chain finance.',
@@ -183,7 +232,7 @@ export const en = {
     slotLabel: 'Preferred Time Slot',
     slots: ['Tomorrow 10:00 AM', 'Tomorrow 2:00 PM', 'Wed 11:00 AM', 'Wed 4:00 PM'],
     confirm: '→ Confirm Appointment',
-    scheduling: '⏳ Scheduling...',
+    scheduling: 'Scheduling...',
     successTitle: 'Session Confirmed',
     successBody: (slot: string, email: string) =>
       `Your demo for ${slot} is booked. A calendar invite will be sent to ${email}.`,
@@ -191,7 +240,7 @@ export const en = {
   },
   invoices: {
     'INV-2841': {
-      statusLabel: '⚠ Duplicate',
+      statusLabel: 'Duplicate',
       anomalyTitle: 'Potential Duplicate Payment Blocked',
       anomalyBody: 'Identical amount ($4,200.00) and metadata match INV-2790 processed 3 days ago. ERP disbursement hold placed automatically.',
       actionLog: [
@@ -204,7 +253,7 @@ export const en = {
       erpSyncStatus: 'DISBURSEMENT_HOLD',
     },
     'INV-2840': {
-      statusLabel: '↑ +12.5%',
+      statusLabel: '+12.5%',
       anomalyTitle: 'Contract Price Variance Detected',
       anomalyBody: 'Unit price deviation of 12.5% detected on electronics category. Contract ceiling is $48.20/unit; billed at $54.23/unit. Auto-email drafted to Meridian Logistics.',
       actionLog: [
@@ -217,7 +266,7 @@ export const en = {
       erpSyncStatus: 'REVIEW_REQUIRED',
     },
     'INV-2839': {
-      statusLabel: '✓ Clear',
+      statusLabel: 'Clear',
       anomalyTitle: 'Verification Passed',
       anomalyBody: 'Invoice amounts, item quantities, and bank routing numbers match Purchase Order PO-9081 and Goods Received Note GRN-112. No action required.',
       actionLog: [
@@ -230,7 +279,7 @@ export const en = {
       erpSyncStatus: 'AUTO_APPROVED',
     },
     'INV-2838': {
-      statusLabel: '⚠ Unapproved PO',
+      statusLabel: 'Unapproved PO',
       anomalyTitle: 'Unapproved Purchase Order Bypass',
       anomalyBody: 'Invoice submitted without a valid pre-approved Purchase Order in ERP. Supplier has bypassed procurement guardrails.',
       actionLog: [
@@ -243,7 +292,7 @@ export const en = {
       erpSyncStatus: 'BLOCKED',
     },
     'INV-2837': {
-      statusLabel: '✓ Clear',
+      statusLabel: 'Clear',
       anomalyTitle: 'Verification Passed',
       anomalyBody: 'Utilities invoice matched with utility telemetry data. Billing tier corresponds to off-peak contract rates.',
       actionLog: [

@@ -15,7 +15,7 @@ export const uz: Dict = {
     title: "Mavjud moliyaviy jarayoningizga to'g'ridan-to'g'ri ulanadigan birinchi Harakat va Xavf qatlami.",
     body: "Yangi kartalar yo'q. Infratuzilma o'zgarishlari yo'q. Faqat to'liq shaffoflik — xatolar ERP'dan chiqib ketguncha marjangizni real vaqtda himoya qiladi.",
     bookDemo: 'Demoni band qilish →',
-    watchOverview: "▶ 2 daqiqalik ko'rib chiqish",
+    watchOverview: "2 daqiqalik ko'rib chiqish",
     trust: {
       noCard: 'Bank kartasi shart emas',
       soc2: 'SOC2 muvofiq',
@@ -31,7 +31,7 @@ export const uz: Dict = {
     title: "Ma'lumotlaringizni shunchaki kuzatmaydigan, balki ular ustida harakat qiladigan yagona tizim.",
     body: "Parallel ishlaydigan ikkita bir-birini to'ldiruvchi intellekt qatlami bilan marjangizni real vaqtda himoya qilish.",
     action: {
-      badge: '✦ Harakat qatlami',
+      badge: 'Harakat qatlami',
       title: 'Nomuvofiqliklarni tez hal qiladigan avtomatlashtirilgan jarayonlar.',
       body: "Belgilashdan yechimgacha — bironta ham qo'lda yozilgan xatsiz.",
       items: [
@@ -50,7 +50,7 @@ export const uz: Dict = {
       ],
     },
     risk: {
-      badge: '◉ Xavf qatlami',
+      badge: 'Xavf qatlami',
       title: "Butun ta'minot zanjiringiz bo'ylab uzluksiz xavf tahlili.",
       body: "Auditorlar e'tiborsiz qoldirgan narsalarni ilg'aydigan ML asosidagi anomaliya aniqlash.",
       items: [
@@ -84,8 +84,8 @@ export const uz: Dict = {
       risks: 'XAVFLAR',
       warnings: 'OGOHLANTIRISHLAR',
     },
-    scan: '⚡ ERP-NI SKANERLASH',
-    scanning: '⚡ SKANERLANMOQDA...',
+    scan: 'ERP-NI SKANERLASH',
+    scanning: 'SKANERLANMOQDA...',
     scanningMsg: 'ERP tranzaktsiyalari real vaqtda skanerlanmoqda...',
     scanComplete: (id: string) => `Skanerlash yakunlandi: yangi takroriy to'lov urinishi bloklandi (${id})!`,
     table: {
@@ -112,17 +112,14 @@ export const uz: Dict = {
     body: "Vigil olti oylik joriy etish tsiklini o'ziga ololmaydigan jamoalar uchun yaratilgan. Biz mavjud texnologiya stekingiz ustida bemalol ishlaymiz va bironta ham maxsus kod satrisiz ma'lumotlarni qabul qilamiz.",
     items: [
       {
-        icon: '🔗',
         title: 'ERP dan mustaqil',
         body: 'NetSuite, SAP, Oracle va Microsoft Dynamics bilan darhol ishlaydi.',
       },
       {
-        icon: '✉',
         title: 'Pochta integratsiyasi',
         body: "Yetkazib beruvchilar xatlarini avtomatik qayta ishlash uchun Outlook va Gmail'ga to'g'ridan-to'g'ri ulanish.",
       },
       {
-        icon: '🛡',
         title: 'Bank darajasidagi xavfsizlik',
         body: "Barcha ma'lumot oqimlari uchun AES-256 uchdan-uchgacha shifrlash bilan SOC2 Type II muvofiq.",
       },
@@ -130,15 +127,67 @@ export const uz: Dict = {
     statUnit: 'Soatda sozlash',
   },
   testimonial: {
-    quote: "«Vigil'dan oldin bizning audit tsiklimiz butunlay reaktiv edi. Biz xatolarni uch oy kechikib topardik. Endi anomaliyalar to'lovlar amalga oshirilishidan oldin aniqlanadi. Biz qo'lda audit vaqtini 90% ga qisqartirdik.»",
-    name: 'Sara Chen',
-    role: 'Moliya bo\'yicha vitse-prezident, SwiftFlow Logistics',
+    label: 'Nega jamoalar Vigil’ni tanlaydi',
+    title: 'Va’dalar emas, dalillar.',
+    stats: [
+      { label: 'Joriy etish' },
+      { label: 'Xavf monitoringi' },
+      { label: 'Ma’lumot shifrlash' },
+      { label: 'Muvofiqlik' },
+    ],
+    quotes: [
+      { quote: 'Takroriy to‘lov soniyalarda bloklandi — u hatto ERP’dan chiqib ketishidan oldin.', role: 'Moliya direktori, o‘rta biznes logistikasi' },
+      { quote: 'Biz ikki kunda ishga tushdik, bironta ham maxsus kod satrini yozmasdan.', role: 'Xaridlar bo‘limi boshlig‘i' },
+      { quote: 'Anomaliyalar oldindan aniqlana boshlagach, qo‘lda audit vaqti keskin qisqardi.', role: 'Moliya nazoratchisi' },
+    ],
   },
   cta: {
     title: "Marjani yo'qotishni bas qiling — ustunlikni qaytarish uchun avtonom nazoratdan foydalanayotgan moliya yetakchilariga qo'shiling.",
     body: "Operatsiyalaridagi har bir dollarni himoya qilish uchun Vigil'dan foydalanayotgan ta'minot zanjiri moliya jamoalariga qo'shiling.",
     schedule: 'Demoni rejalashtirish',
     talk: "Ekspert bilan bog'lanish",
+  },
+  dashboard: {
+    loading: 'Dashboard yuklanmoqda...',
+    header: {
+      title: 'Xarid operatsiyalari',
+      desc: "Mustaqil audit tekshiruvlari, narxlar tahlili va yetkazib beruvchilar bilan ishlash.",
+    },
+    actions: {
+      runAudit: 'Auditni ishga tushirish',
+      runAgent: 'Agentni ishga tushirish',
+    },
+    banners: {
+      auditOk: "To'liq moliyaviy audit muvaffaqiyatli yakunlandi. Fakturalar tekshirildi va belgilandi.",
+      auditErr: (message: string) => `Audit skanerlash xatosi: ${message}`,
+      agentOk: (count: number) => `Agent tsikli yakunlandi — ${count} ta eslatma xati loyihasi tayyorlandi.`,
+      agentErr: (message: string) => `Agentni ishga tushirish xatosi: ${message}`,
+    },
+    kpis: {
+      total: { name: 'Jami tekshirilgan', desc: 'Tizimdagi hisoblar soni' },
+      pending: { name: "E'tibor talab qiladi", desc: "Qo'lda tekshirish kutilmoqda" },
+      approved: { name: 'Avto-tasdiqlangan', desc: 'Xavf darajasi < 15' },
+      spend: { name: 'Tekshiruvdagi xarajatlar', desc: 'Eskalatsiya qilingan / Kutilmoqda' },
+    },
+    rag: {
+      title: 'Vigil AI yordamchisidan so‘rash',
+      desc: "Semantik qidiruv yoki to'g'ridan-to'g'ri SQL so'rovlari orqali moliyaviy ma'lumotlarni oling. Sinab ko'ring:",
+      example1: "Kimda yaqinda narx anomaliyalari bo'lgan?",
+      example2: 'Elektronikaga umumiy xarajat qancha?',
+      cta: 'Chat yordamchisini ochish',
+    },
+    severity: {
+      title: 'Xavf darajasi bo‘yicha anomaliyalar',
+      critical: 'Kritik',
+      high: 'Yuqori',
+      medium: "O'rta",
+      low: 'Past',
+    },
+    activity: {
+      title: "So'nggi faoliyat",
+      viewAll: "Barcha loglarni ko'rish →",
+      empty: "Hozircha faoliyat yo'q. Audit skanerlashni ishga tushiring yoki bazani qayta yarating.",
+    },
   },
   footer: {
     brandDesc: "Zamonaviy ta'minot zanjiri moliyasi uchun avtonom tezkor markaz.",
@@ -181,7 +230,7 @@ export const uz: Dict = {
     slotLabel: "Ma'qul kelgan vaqt",
     slots: ['Ertaga 10:00', 'Ertaga 14:00', 'Chor 11:00', 'Chor 16:00'],
     confirm: '→ Uchrashuvni tasdiqlash',
-    scheduling: '⏳ Rejalashtirilmoqda...',
+    scheduling: 'Rejalashtirilmoqda...',
     successTitle: 'Uchrashuv tasdiqlandi',
     successBody: (slot: string, email: string) =>
       `Sizning ${slot} dagi demoyingiz band qilindi. Kalendarga taklifnoma ${email} manziliga yuboriladi.`,
@@ -189,7 +238,7 @@ export const uz: Dict = {
   },
   invoices: {
     'INV-2841': {
-      statusLabel: '⚠ Dublikat',
+      statusLabel: 'Dublikat',
       anomalyTitle: "Potentsial dublikat to'lov bloklandi",
       anomalyBody: "3 kun oldin to'langan INV-2790 hisob-fakturasi bilan bir xil summa ($4,200.00) va metama'lumot mos keldi. ERP to'lovi avtomatik ravishda to'xtatildi.",
       actionLog: [
@@ -202,7 +251,7 @@ export const uz: Dict = {
       erpSyncStatus: "TO'LOV_BLOKLANDI",
     },
     'INV-2840': {
-      statusLabel: '↑ +12.5%',
+      statusLabel: '+12.5%',
       anomalyTitle: 'Shartnoma narxi tafovuti aniqlandi',
       anomalyBody: "Elektronika toifasida birlik narxining 12.5% ga og'ishi aniqlandi. Shartnoma chegarasi: $48.20/birlik; hisoblangan narx: $54.23/birlik. Meridian Logistics uchun avtomatik xat tayyorlandi.",
       actionLog: [
@@ -215,7 +264,7 @@ export const uz: Dict = {
       erpSyncStatus: 'TEKSHIRISH_ZARUR',
     },
     'INV-2839': {
-      statusLabel: '✓ Toza',
+      statusLabel: 'Toza',
       anomalyTitle: "Tekshiruv muvaffaqiyatli o'tdi",
       anomalyBody: 'Hisob-faktura summasi, tovarlar miqdori va bank rekvizitlari PO-9081 xarid buyurtmasi hamda GRN-112 qabul aktiga to\'liq mos keladi. Harakat talab qilinmaydi.',
       actionLog: [
@@ -228,7 +277,7 @@ export const uz: Dict = {
       erpSyncStatus: 'AVTO_TASDIQLANDI',
     },
     'INV-2838': {
-      statusLabel: '⚠ PO yoʻq',
+      statusLabel: 'PO yoʻq',
       anomalyTitle: "Tasdiqlanmagan PO chetlab o'tildi",
       anomalyBody: "Faktura ERP tizimida oldindan tasdiqlangan Xarid buyurtmasisiz (PO) yuborilgan. Yetkazib beruvchi xarid qoidalarini chetlab o'tgan.",
       actionLog: [
@@ -241,7 +290,7 @@ export const uz: Dict = {
       erpSyncStatus: 'BLOKLANGAN',
     },
     'INV-2837': {
-      statusLabel: '✓ Toza',
+      statusLabel: 'Toza',
       anomalyTitle: "Tekshiruv muvaffaqiyatli o'tdi",
       anomalyBody: "Kommunal xizmatlar hisob-fakturasi bino IoT iste'mol ko'rsatkichlari bilan solishtirildi. Tariflar shartnomadagi arzon tarif vaqtlariga mos keladi.",
       actionLog: [

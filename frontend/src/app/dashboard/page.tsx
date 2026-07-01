@@ -19,6 +19,11 @@ import { AuditSummary, AuditLogEntry } from '../../types';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useI18n } from '@/i18n/I18nProvider';
+
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
 
 /* ── Status dot helper ── */
 function statusDot(variant: 'success' | 'warning' | 'danger' | 'info' | 'muted') {
@@ -41,6 +46,8 @@ function getLogVariant(action: string): 'danger' | 'success' | 'info' | 'muted' 
 }
 
 export default function Dashboard() {
+  const { t } = useI18n();
+  const d = t.dashboard;
   const [summary,      setSummary]      = useState<AuditSummary | null>(null);
   const [recentLogs,   setRecentLogs]   = useState<AuditLogEntry[]>([]);
   const [loading,      setLoading]      = useState(true);
@@ -61,7 +68,11 @@ export default function Dashboard() {
     }
   };
 
-  useEffect(() => { fetchDashboardData(); }, []);
+  useEffect(() => {
+    (async () => {
+      await fetchDashboardData();
+    })();
+  }, []);
 
   const showBanner = (type: 'ok' | 'err', msg: string) => {
     setBanner({ type, msg });
@@ -73,9 +84,9 @@ export default function Dashboard() {
     try {
       await api.runAudit();
       await fetchDashboardData();
-      showBanner('ok', 'Full financial audit completed. Invoices risk-scored and flagged.');
-    } catch (err: any) {
-      showBanner('err', `Audit scan failed: ${err.message}`);
+      showBanner('ok', d.banners.auditOk);
+    } catch (err) {
+      showBanner('err', d.banners.auditErr(errorMessage(err)));
     } finally {
       setAuditRunning(false);
     }
@@ -86,9 +97,9 @@ export default function Dashboard() {
     try {
       const res = await api.runAgentCycle();
       await fetchDashboardData();
-      showBanner('ok', `Agent cycle complete — ${res.emails_drafted.length} reminder(s) drafted.`);
-    } catch (err: any) {
-      showBanner('err', `Agent run failed: ${err.message}`);
+      showBanner('ok', d.banners.agentOk(res.emails_drafted.length));
+    } catch (err) {
+      showBanner('err', d.banners.agentErr(errorMessage(err)));
     } finally {
       setAgentRunning(false);
     }
@@ -99,22 +110,22 @@ export default function Dashboard() {
       <div className="flex h-[80vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <RefreshCw className="h-8 w-8 animate-spin text-primary" />
-          <span className="text-sm text-muted-foreground">Loading dashboard…</span>
+          <span className="text-sm text-muted-foreground">{d.loading}</span>
         </div>
       </div>
     );
   }
 
   const kpis = [
-    { name: 'Total Audited',       value: summary?.total_invoices || 0,  icon: FileText,     variant: 'info'    as const, description: 'Invoices in system' },
-    { name: 'Needs Attention',     value: summary?.pending_human  || 0,  icon: AlertTriangle,variant: 'warning' as const, description: 'Pending human review' },
-    { name: 'Auto-Approved',       value: summary?.auto_approved  || 0,  icon: CheckCircle2, variant: 'success' as const, description: 'Risk score < 15' },
+    { name: d.kpis.total.name,    value: summary?.total_invoices || 0,  icon: FileText,     variant: 'info'    as const, description: d.kpis.total.desc },
+    { name: d.kpis.pending.name,  value: summary?.pending_human  || 0,  icon: AlertTriangle,variant: 'warning' as const, description: d.kpis.pending.desc },
+    { name: d.kpis.approved.name, value: summary?.auto_approved  || 0,  icon: CheckCircle2, variant: 'success' as const, description: d.kpis.approved.desc },
     {
-      name: 'Spend Under Review',
+      name: d.kpis.spend.name,
       value: `$${(summary?.total_spend_under_review || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       icon: DollarSign,
       variant: 'danger' as const,
-      description: 'Escalated / Pending'
+      description: d.kpis.spend.desc
     },
   ];
 
@@ -147,9 +158,9 @@ export default function Dashboard() {
       {/* ── Header ── */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Procurement Operations</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{d.header.title}</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Autonomous audit checks, pricing analysis, and supplier follow-ups.
+            {d.header.desc}
           </p>
         </div>
 
@@ -164,7 +175,7 @@ export default function Dashboard() {
               ? <RefreshCw className="h-4 w-4 animate-spin text-primary" />
               : <ShieldCheck className="h-4 w-4 text-primary" />
             }
-            Run Audit
+            {d.actions.runAudit}
           </Button>
 
           <Button
@@ -176,7 +187,7 @@ export default function Dashboard() {
               ? <RefreshCw className="h-4 w-4 animate-spin" />
               : <Play className="h-4 w-4 fill-current" />
             }
-            Run Agent
+            {d.actions.runAgent}
           </Button>
         </div>
       </div>
@@ -214,13 +225,13 @@ export default function Dashboard() {
               <Bot className="h-4.5 w-4.5 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground">Ask Vigil RAG Assistant</h3>
+              <h3 className="font-semibold text-foreground">{d.rag.title}</h3>
               <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                Retrieve financial details using semantic search or direct SQL queries. Try:
+                {d.rag.desc}
               </p>
               <div className="mt-2 space-y-0.5">
-                <span className="text-sm text-primary block italic">"Who has had price anomalies recently?"</span>
-                <span className="text-sm text-primary block italic">"What is the total spend on electronics?"</span>
+                <span className="text-sm text-primary block italic">&ldquo;{d.rag.example1}&rdquo;</span>
+                <span className="text-sm text-primary block italic">&ldquo;{d.rag.example2}&rdquo;</span>
               </div>
             </div>
           </div>
@@ -229,7 +240,7 @@ export default function Dashboard() {
               href="/ask"
               className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
             >
-              Open Chat Assistant
+              {d.rag.cta}
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
@@ -239,14 +250,14 @@ export default function Dashboard() {
         <Card className="vigil-card p-6">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-5 flex items-center gap-2">
             <Activity className="h-4 w-4 text-primary" />
-            Anomalies by Severity
+            {d.severity.title}
           </h3>
           <div className="space-y-3.5">
             {[
-              { name: 'Critical', count: summary?.severity_counts?.critical || 0, variant: 'danger'   as const, barColor: 'bg-red-500' },
-              { name: 'High',     count: summary?.severity_counts?.high     || 0, variant: 'warning'  as const, barColor: 'bg-amber-500' },
-              { name: 'Medium',   count: summary?.severity_counts?.medium   || 0, variant: 'warning'  as const, barColor: 'bg-yellow-400' },
-              { name: 'Low',      count: summary?.severity_counts?.low      || 0, variant: 'info'     as const, barColor: 'bg-blue-400' },
+              { name: d.severity.critical, count: summary?.severity_counts?.critical || 0, variant: 'danger'   as const, barColor: 'bg-red-500' },
+              { name: d.severity.high,     count: summary?.severity_counts?.high     || 0, variant: 'warning'  as const, barColor: 'bg-amber-500' },
+              { name: d.severity.medium,   count: summary?.severity_counts?.medium   || 0, variant: 'warning'  as const, barColor: 'bg-yellow-400' },
+              { name: d.severity.low,      count: summary?.severity_counts?.low      || 0, variant: 'info'     as const, barColor: 'bg-blue-400' },
             ].map(item => {
               const maxCount = Math.max(1, ...Object.values(summary?.severity_counts || {}));
               const widthPct = `${Math.min(100, (item.count / maxCount) * 100)}%`;
@@ -277,10 +288,10 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-5 pb-4 border-b border-border">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
             <Activity className="h-4 w-4 text-primary" />
-            Recent Activity
+            {d.activity.title}
           </h3>
           <Link href="/log" className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
-            View all logs →
+            {d.activity.viewAll}
           </Link>
         </div>
 
@@ -309,7 +320,7 @@ export default function Dashboard() {
             })
           ) : (
             <div className="py-10 text-center text-sm text-muted-foreground">
-              No activity yet. Run an audit scan or re-seed the database.
+              {d.activity.empty}
             </div>
           )}
         </div>

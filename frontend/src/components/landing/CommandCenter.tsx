@@ -1,11 +1,20 @@
 'use client';
 
 import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Loader2, Zap, TriangleAlert, TrendingUp, CheckCircle2, type LucideIcon } from 'lucide-react';
 import { useI18n } from '@/i18n/I18nProvider';
-import { localizeInvoices } from '@/lib/landingData';
+import { localizeInvoices, type MockInvoice } from '@/lib/landingData';
+import { Reveal } from './Reveal';
 
 type InsightTab = 'insight' | 'logs' | 'metadata';
 type FilterStatus = 'all' | 'risk' | 'warn';
+
+const STATUS_ICONS: Record<MockInvoice['status'], LucideIcon> = {
+  risk: TriangleAlert,
+  warn: TrendingUp,
+  ok: CheckCircle2,
+};
 
 export default function CommandCenter() {
   const { t } = useI18n();
@@ -44,13 +53,22 @@ export default function CommandCenter() {
 
   return (
     <section className="lp-section technical-grid" id="lp-command">
-      <div className="lp-cmd-header" style={{ position: 'relative', zIndex: 1 }}>
-        <div className="lp-section-label">{c.label}</div>
-        <h2 className="lp-section-title">{c.title}</h2>
-        <p className="lp-section-body">{c.body}</p>
-      </div>
+      <Reveal className="lp-cmd-header" >
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div className="lp-section-label">{c.label}</div>
+          <h2 className="lp-section-title">{c.title}</h2>
+          <p className="lp-section-body">{c.body}</p>
+        </div>
+      </Reveal>
 
-      <div className="lp-browser-mock" style={{ position: 'relative', zIndex: 1 }}>
+      <motion.div
+        className={`lp-browser-mock ${isScanning ? 'lp-scanning-glow' : ''}`}
+        style={{ position: 'relative', zIndex: 1 }}
+        initial={{ opacity: 0, scale: 0.98 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      >
         <div className="lp-browser-bar">
           <span className="lp-browser-dot lp-red"></span>
           <span className="lp-browser-dot lp-yellow"></span>
@@ -112,6 +130,7 @@ export default function CommandCenter() {
                 disabled={isScanning}
                 className="lp-btn-primary py-1 px-3 text-[11px] flex items-center gap-1.5 font-mono shadow-md hover:shadow-lg disabled:opacity-50"
               >
+                {isScanning ? <Loader2 size={12} className="animate-spin" /> : <Zap size={12} />}
                 {isScanning ? c.scanning : c.scan}
               </button>
             </div>
@@ -119,7 +138,7 @@ export default function CommandCenter() {
             {/* Scan Status Message */}
             {scanMessage && (
               <div className="mb-3 p-2 text-xs font-mono rounded bg-blue-500/10 border border-blue-500/30 text-blue-400 flex items-center gap-2 animate-pulse">
-                <span>⚙</span>
+                <Loader2 size={14} className="animate-spin shrink-0" />
                 <span>{scanMessage}</span>
               </div>
             )}
@@ -142,12 +161,18 @@ export default function CommandCenter() {
                   <span style={{ color: 'var(--text-2)' }}>{inv.supplier}</span>
                   <span style={{ fontWeight: 600 }}>{inv.amount}</span>
                   <span>
-                    <div className={`lp-bc-badge ${
-                      inv.status === 'risk' ? 'lp-risk' :
-                      inv.status === 'warn' ? 'lp-warn' : 'lp-ok'
-                    }`}>
-                      {inv.statusLabel}
-                    </div>
+                    {(() => {
+                      const StatusIcon = STATUS_ICONS[inv.status];
+                      return (
+                        <div className={`lp-bc-badge ${
+                          inv.status === 'risk' ? 'lp-risk' :
+                          inv.status === 'warn' ? 'lp-warn' : 'lp-ok'
+                        }`}>
+                          <StatusIcon size={11} />
+                          {inv.statusLabel}
+                        </div>
+                      );
+                    })()}
                   </span>
                 </div>
               ))}
@@ -181,7 +206,7 @@ export default function CommandCenter() {
                 <div className="text-[11px] font-mono space-y-1.5 text-[var(--text-2)]">
                   {selectedInvoice.actionLog.map((log, index) => (
                     <div key={index} className="flex gap-2">
-                      <span className="text-blue-lt">⚡</span>
+                      <Zap size={12} className="text-blue-lt shrink-0 mt-0.5" />
                       <span>{log}</span>
                     </div>
                   ))}
@@ -198,7 +223,7 @@ export default function CommandCenter() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }

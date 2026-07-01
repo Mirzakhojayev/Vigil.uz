@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { X, Check } from 'lucide-react';
 import { useI18n } from '@/i18n/I18nProvider';
 
 interface BookDemoModalProps {
@@ -137,7 +138,7 @@ export default function BookDemoModal({ onClose }: BookDemoModalProps) {
       <div className="bd-overlay" onClick={handleClose}>
         <div className="bd-card" onClick={(e) => e.stopPropagation()}>
           <div className="bd-accent-bar" />
-          <button className="bd-close" onClick={handleClose} title="Close">✕</button>
+          <button className="bd-close" onClick={handleClose} title="Close"><X size={16} /></button>
 
           {!success ? (
             <>
@@ -207,7 +208,7 @@ export default function BookDemoModal({ onClose }: BookDemoModalProps) {
             </>
           ) : (
             <div style={{ textAlign: 'center', padding: '24px 0' }}>
-              <div className="bd-success-icon">✓</div>
+              <div className="bd-success-icon"><Check size={28} /></div>
               <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-1)', marginBottom: '10px' }}>
                 {m.successTitle}
               </div>

@@ -10,6 +10,9 @@ const INTEGRATIONS = [
   'Workday Financials',
 ];
 
+// Rendered twice back-to-back so the marquee loop (translateX -50%) is seamless.
+const LOOPED = [...INTEGRATIONS, ...INTEGRATIONS];
+
 export default function LogosSection() {
   const { t } = useI18n();
 
@@ -17,9 +20,11 @@ export default function LogosSection() {
     <div id="lp-logos">
       <p className="lp-logos-label">{t.logos.label}</p>
       <div className="lp-logos-row">
-        {INTEGRATIONS.map((name) => (
-          <span key={name} className="lp-logo-item">{name}</span>
-        ))}
+        <div className="lp-logos-track">
+          {LOOPED.map((name, i) => (
+            <span key={`${name}-${i}`} className="lp-logo-item">{name}</span>
+          ))}
+        </div>
       </div>
     </div>
   );
