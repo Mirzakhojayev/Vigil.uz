@@ -7,26 +7,32 @@ import { AgentEmail } from '../../types';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useI18n } from '@/i18n/I18nProvider';
+import type { Dict } from '@/i18n';
 
 /* ── Tone label — inline text, no pill ── */
-function ToneLabel({ tone }: { tone?: string }) {
+function ToneLabel({ tone, ib }: { tone?: string; ib: Dict['inbox'] }) {
   if (!tone) return null;
-  const map: Record<string, { dot: string; label: string }> = {
-    friendly: { dot: 'status-dot status-dot-success', label: 'Friendly reminder' },
-    firm:     { dot: 'status-dot status-dot-warning', label: 'Firm escalation' },
-    urgent:   { dot: 'status-dot status-dot-danger',  label: 'Urgent notice' },
+  const dotMap: Record<string, string> = {
+    friendly: 'status-dot status-dot-success',
+    firm:     'status-dot status-dot-warning',
+    urgent:   'status-dot status-dot-danger',
   };
-  const config = map[tone.toLowerCase()];
-  if (!config) return null;
+  const key = tone.toLowerCase();
+  const dot = dotMap[key];
+  const label = (ib.tone as Record<string, string>)[key];
+  if (!dot || !label) return null;
   return (
     <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-      <span className={`${config.dot} ${tone.toLowerCase() === 'urgent' ? 'animate-pulse' : ''}`} />
-      {config.label}
+      <span className={`${dot} ${key === 'urgent' ? 'animate-pulse' : ''}`} />
+      {label}
     </span>
   );
 }
 
 export default function InboxPage() {
+  const { t } = useI18n();
+  const ib = t.inbox;
   const [emails,          setEmails]          = useState<AgentEmail[]>([]);
   const [selectedEmailId, setSelectedEmailId] = useState<number | null>(null);
   const [loading,         setLoading]         = useState(true);
@@ -43,7 +49,12 @@ export default function InboxPage() {
     }
   };
 
-  useEffect(() => { fetchEmails(); }, []);
+  useEffect(() => {
+    (async () => {
+      await fetchEmails();
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const selectedEmail = emails.find(e => e.id === selectedEmailId);
 
@@ -52,7 +63,7 @@ export default function InboxPage() {
       <div className="flex h-[80vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <RefreshCw className="h-8 w-8 animate-spin text-primary" />
-          <span className="text-sm text-muted-foreground">Loading communications…</span>
+          <span className="text-sm text-muted-foreground">{ib.loading}</span>
         </div>
       </div>
     );
@@ -64,9 +75,9 @@ export default function InboxPage() {
       {/* ── Header ── */}
       <div className="shrink-0 flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Agent Inbox</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{ib.title}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Review follow-up reminders drafted by the AI agent and monitor supplier replies.
+            {ib.desc}
           </p>
         </div>
         <Button
@@ -75,7 +86,7 @@ export default function InboxPage() {
           className="flex items-center gap-2 h-9 px-4 text-sm font-medium rounded-lg border border-border bg-card hover:bg-accent text-foreground cursor-pointer"
         >
           <RefreshCw className="h-4 w-4 text-primary" />
-          Refresh
+          {ib.refresh}
         </Button>
       </div>
 
@@ -85,7 +96,7 @@ export default function InboxPage() {
         {/* Email list */}
         <Card className="vigil-card lg:col-span-5 p-4 flex flex-col h-full min-h-0">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 block">
-            Communication Outbox
+            {ib.outbox}
           </span>
 
           <ScrollArea className="flex-1 pr-1">
@@ -124,20 +135,20 @@ export default function InboxPage() {
                               ? <ArrowDownLeft className="h-3 w-3" />
                               : <ArrowUpRight  className="h-3 w-3" />
                             }
-                            {isInbound ? 'Inbound' : 'Outbound'}
+                            {isInbound ? ib.inbound : ib.outbound}
                           </span>
                           <span className="text-xs text-muted-foreground truncate max-w-[110px]">
                             {email.supplier?.name}
                           </span>
                         </div>
-                        {!isInbound && <ToneLabel tone={email.tone} />}
+                        {!isInbound && <ToneLabel tone={email.tone} ib={ib} />}
                       </div>
                     </div>
                   );
                 })
               ) : (
                 <div className="py-12 text-center text-sm text-muted-foreground">
-                  No correspondence yet. Run the agent cycle to send reminders.
+                  {ib.empty}
                 </div>
               )}
             </div>
@@ -154,11 +165,11 @@ export default function InboxPage() {
                 <div className="flex justify-between items-start gap-4">
                   <h3 className="text-base font-semibold text-foreground leading-snug">{selectedEmail.subject}</h3>
                   {selectedEmail.direction === 'outbound'
-                    ? <ToneLabel tone={selectedEmail.tone} />
+                    ? <ToneLabel tone={selectedEmail.tone} ib={ib} />
                     : (
                       <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                         <span className="status-dot status-dot-info" />
-                        Simulated reply
+                        {ib.simulatedReply}
                       </span>
                     )
                   }
@@ -166,23 +177,23 @@ export default function InboxPage() {
 
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-0.5">From</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-0.5">{ib.from}</span>
                     <span className="text-foreground">
-                      {selectedEmail.direction === 'inbound' ? selectedEmail.supplier?.name : 'Vigil Procurement Agent'}
+                      {selectedEmail.direction === 'inbound' ? selectedEmail.supplier?.name : ib.agentName}
                     </span>
                   </div>
                   <div>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-0.5">To</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-0.5">{ib.to}</span>
                     <span className="text-foreground">
-                      {selectedEmail.direction === 'inbound' ? 'Vigil Procurement Agent' : selectedEmail.supplier?.name}
+                      {selectedEmail.direction === 'inbound' ? ib.agentName : selectedEmail.supplier?.name}
                     </span>
                   </div>
                   <div>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-0.5">Sent</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-0.5">{ib.sent}</span>
                     <span className="text-foreground">{new Date(selectedEmail.sent_at).toLocaleString()}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-0.5">PO Reference</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-0.5">{ib.poReference}</span>
                     <span className="text-foreground font-medium">{selectedEmail.po_id || 'N/A'}</span>
                   </div>
                 </div>
@@ -199,14 +210,14 @@ export default function InboxPage() {
               <div className="flex items-start gap-2 bg-primary/5 border border-primary/15 rounded-lg px-4 py-3 text-xs text-muted-foreground">
                 <AlertCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                 <span>
-                  This communication is archived in the compliance vault. Modifying or deleting agent records is prohibited.
+                  {ib.complianceNote}
                 </span>
               </div>
             </div>
           ) : (
             <div className="h-full flex flex-col items-center justify-center gap-2">
               <Mail className="h-8 w-8 text-muted-foreground/40" />
-              <span className="text-sm text-muted-foreground">Select an email to read its contents</span>
+              <span className="text-sm text-muted-foreground">{ib.selectToRead}</span>
             </div>
           )}
         </Card>

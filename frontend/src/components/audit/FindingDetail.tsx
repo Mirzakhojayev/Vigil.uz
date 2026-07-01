@@ -1,35 +1,28 @@
+'use client';
+
 import React from 'react';
-import { AlertCircle, ShieldCheck, Cpu, Percent } from 'lucide-react';
+import { ShieldCheck, Cpu, Percent } from 'lucide-react';
 import { Invoice, AuditFinding } from '../../types';
 import AnomalyBadge from './AnomalyBadge';
 import PriceComparisonChart from './PriceComparisonChart';
 import { Card } from '@/components/ui/card';
+import { useI18n } from '@/i18n/I18nProvider';
 
 interface FindingDetailProps {
   invoice: Invoice;
 }
 
-// Map check names to user-friendly titles
-const CHECK_TITLES: Record<string, string> = {
-  check_price_deviation: 'Unit Price Deviation Spike',
-  check_exact_duplicate: 'Duplicate Billing Detected',
-  check_split_invoicing: 'Split Invoicing (Limit Bypass)',
-  check_near_identical: 'Near-Identical Transaction Pair',
-  check_round_numbers: 'Round Number Billing Indicator',
-  check_po_reference: 'Missing or Invalid PO Reference',
-  check_spend_concentration: 'Single Vendor Spend Concentration',
-  check_new_supplier_large: 'High-Value First Invoice Risk',
-  check_sequential_timing: 'Sequential Frequency Invoicing',
-  check_invoice_exceeds_po: 'Invoice Total Exceeds PO Authorization',
-};
-
 export default function FindingDetail({ invoice }: FindingDetailProps) {
+  const { t } = useI18n();
+  const a = t.audit;
+  const f = a.finding;
+  const checkTitles = a.checks as Record<string, string>;
   // Helper to parse price deviation values out of the audit engine's text
   const getPriceSpikeData = (finding: AuditFinding) => {
     const text = finding.reasoning;
     
     // Default values matching our Apex plant
-    let itemCode = 'ITEM-RESISTOR-10K';
+    const itemCode = 'ITEM-RESISTOR-10K';
     let invoicePrice = 0.0603;
     let historicalAvg = 0.0450;
     let deviationPct = 34.0;
@@ -58,19 +51,19 @@ export default function FindingDetail({ invoice }: FindingDetailProps) {
     <div className="flex flex-col h-full space-y-6">
       {/* Header */}
       <div>
-        <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">System Findings</span>
-        <h3 className="text-sm font-semibold text-foreground mt-1">Anomaly Evidence Analysis</h3>
+        <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">{f.systemFindings}</span>
+        <h3 className="text-sm font-semibold text-foreground mt-1">{f.analysisTitle}</h3>
       </div>
 
       {/* Invoice Meta Detail Header */}
       <div className="rounded-lg border border-border bg-muted/30 p-4 flex justify-between items-start text-xs">
         <div className="space-y-0.5">
-          <span className="text-muted-foreground block">Date: {invoice.invoice_date}</span>
-          <span className="text-muted-foreground block">Vendor: {invoice.supplier?.name} ({invoice.supplier?.country})</span>
+          <span className="text-muted-foreground block">{f.date}: {invoice.invoice_date}</span>
+          <span className="text-muted-foreground block">{f.vendor}: {invoice.supplier?.name} ({invoice.supplier?.country})</span>
         </div>
         <div className="text-right">
-          <span className="text-muted-foreground block">PO Reference</span>
-          <span className="font-medium text-foreground block">{invoice.po_id || 'None'}</span>
+          <span className="text-muted-foreground block">{f.poReference}</span>
+          <span className="font-medium text-foreground block">{invoice.po_id || f.none}</span>
         </div>
       </div>
 
@@ -89,17 +82,17 @@ export default function FindingDetail({ invoice }: FindingDetailProps) {
                 {/* Finding Header */}
                 <div className="flex justify-between items-start gap-4">
                 <div className="space-y-0.5">
-                    <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider block">Check Triggered</span>
+                    <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider block">{f.checkTriggered}</span>
                     <h4 className="text-sm font-semibold text-foreground leading-tight">
-                      {CHECK_TITLES[finding.check_name] || finding.check_name}
+                      {checkTitles[finding.check_name] || finding.check_name}
                     </h4>
                   </div>
-                  <AnomalyBadge severity={finding.severity as any} />
+                  <AnomalyBadge severity={finding.severity as 'critical' | 'high' | 'medium' | 'low'} />
                 </div>
 
                 {/* Finding Body Explanation */}
                 <div className="space-y-1.5">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">Auditor Reasoning</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">{f.auditorReasoning}</span>
                   <p className="text-sm text-foreground/85 leading-relaxed">
                     {finding.reasoning}
                   </p>
@@ -107,7 +100,7 @@ export default function FindingDetail({ invoice }: FindingDetailProps) {
 
                 {/* Performance Chart if Price Spike */}
                 {isPriceSpike && priceSpikeData && (
-                  <PriceComparisonChart 
+                  <PriceComparisonChart
                     itemCode={priceSpikeData.itemCode}
                     invoicePrice={priceSpikeData.invoicePrice}
                     historicalAvg={priceSpikeData.historicalAvg}
@@ -119,11 +112,11 @@ export default function FindingDetail({ invoice }: FindingDetailProps) {
                 <div className="flex items-center justify-between pt-3 border-t border-border text-xs text-muted-foreground mt-auto">
                   <span className="flex items-center gap-1.5">
                     <Cpu className="h-3.5 w-3.5 text-primary" />
-                    Vigil Core v1
+                    {f.coreVersion}
                   </span>
                   <span className="flex items-center gap-1.5">
                     <Percent className="h-3 w-3 text-primary" />
-                    {Math.round(finding.confidence * 100)}% confidence
+                    {f.confidence(Math.round(finding.confidence * 100))}
                   </span>
                 </div>
               </Card>
@@ -134,9 +127,9 @@ export default function FindingDetail({ invoice }: FindingDetailProps) {
             <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 mb-4 border border-emerald-500/20">
               <ShieldCheck className="h-6 w-6" />
             </div>
-            <h4 className="text-sm font-bold text-foreground">Invoice Clear</h4>
+            <h4 className="text-sm font-bold text-foreground">{f.clearTitle}</h4>
             <p className="text-muted-foreground text-xs mt-1.5 max-w-sm">
-              The automated check system ran all 10 standard audit checks and found no anomalies. This transaction is recommended for standard approval.
+              {f.clearBody}
             </p>
           </div>
         )}

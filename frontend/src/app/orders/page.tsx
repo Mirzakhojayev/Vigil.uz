@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FileSpreadsheet, Play, Mail, Sparkles, RefreshCw } from 'lucide-react';
+import { Play, Mail, Sparkles, RefreshCw } from 'lucide-react';
 import { api } from '../../lib/api';
 import { PurchaseOrder } from '../../types';
 import { Button } from '@/components/ui/button';
@@ -9,26 +9,33 @@ import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useI18n } from '@/i18n/I18nProvider';
+import type { Dict } from '@/i18n';
 
 /* ── Status indicator — dot + label ── */
-function StatusIndicator({ status }: { status: string }) {
-  const map: Record<string, { dot: string; label: string }> = {
-    paid:      { dot: 'status-dot status-dot-success', label: 'Paid' },
-    invoiced:  { dot: 'status-dot status-dot-info',    label: 'Invoiced' },
-    shipped:   { dot: 'status-dot status-dot-info',    label: 'Shipped' },
-    confirmed: { dot: 'status-dot status-dot-info',    label: 'Confirmed' },
-    overdue:   { dot: 'status-dot status-dot-danger',  label: 'Overdue' },
+function StatusIndicator({ status, o }: { status: string; o: Dict['orders'] }) {
+  const dotMap: Record<string, string> = {
+    paid:      'status-dot status-dot-success',
+    invoiced:  'status-dot status-dot-info',
+    shipped:   'status-dot status-dot-info',
+    confirmed: 'status-dot status-dot-info',
+    overdue:   'status-dot status-dot-danger',
   };
-  const { dot, label } = map[status.toLowerCase()] ?? { dot: 'status-dot status-dot-warning', label: 'Pending' };
+  const key = status.toLowerCase();
+  const statusLabels = o.status as Record<string, string>;
+  const dot = dotMap[key] ?? 'status-dot status-dot-warning';
+  const label = statusLabels[key] ?? o.status.pending;
   return (
     <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-      <span className={`${dot} ${status.toLowerCase() === 'overdue' ? 'animate-pulse' : ''}`} />
+      <span className={`${dot} ${key === 'overdue' ? 'animate-pulse' : ''}`} />
       {label}
     </span>
   );
 }
 
 export default function OrdersPage() {
+  const { t } = useI18n();
+  const o = t.orders;
   const [orders,          setOrders]          = useState<PurchaseOrder[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [scenario,        setScenario]        = useState('shipment_dispatched');
@@ -47,7 +54,12 @@ export default function OrdersPage() {
     }
   };
 
-  useEffect(() => { fetchOrders(); }, []);
+  useEffect(() => {
+    (async () => {
+      await fetchOrders();
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSimulate = async () => {
     if (!selectedOrderId) return;
@@ -55,9 +67,9 @@ export default function OrdersPage() {
     try {
       await api.simulateReply(selectedOrderId, scenario);
       await fetchOrders();
-      alert(`Supplier reply simulated. Check Inbox & Agent for email transcripts.`);
-    } catch (err: any) {
-      alert(`Simulation failed: ${err.message}`);
+      alert(o.simulateOk);
+    } catch (err) {
+      alert(o.simulateFailed(err instanceof Error ? err.message : String(err)));
     } finally {
       setSimulating(false);
     }
@@ -70,7 +82,7 @@ export default function OrdersPage() {
       <div className="flex h-[80vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <RefreshCw className="h-8 w-8 animate-spin text-primary" />
-          <span className="text-sm text-muted-foreground">Loading purchase orders…</span>
+          <span className="text-sm text-muted-foreground">{o.loading}</span>
         </div>
       </div>
     );
@@ -81,9 +93,9 @@ export default function OrdersPage() {
 
       {/* ── Header ── */}
       <div className="shrink-0">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Purchase Orders</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">{o.title}</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Monitor procurement statuses, track automated reminders, and simulate supplier replies.
+          {o.desc}
         </p>
       </div>
 
@@ -93,18 +105,18 @@ export default function OrdersPage() {
         {/* PO Table */}
         <Card className="vigil-card lg:col-span-8 p-4 flex flex-col h-full min-h-0">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 block">
-            All Purchase Orders
+            {o.allOrders}
           </span>
           <ScrollArea className="flex-1 rounded-lg border border-border">
             <Table className="w-full text-xs text-left">
               <TableHeader>
                 <TableRow className="bg-muted/50 text-muted-foreground text-[10px] uppercase tracking-wider">
-                  <TableHead className="p-3 font-semibold">PO ID</TableHead>
-                  <TableHead className="p-3 font-semibold">Supplier</TableHead>
-                  <TableHead className="p-3 font-semibold">Delivery Due</TableHead>
-                  <TableHead className="p-3 font-semibold text-right">Value</TableHead>
-                  <TableHead className="p-3 font-semibold text-center">Reminders</TableHead>
-                  <TableHead className="p-3 font-semibold text-center">Status</TableHead>
+                  <TableHead className="p-3 font-semibold">{o.table.poId}</TableHead>
+                  <TableHead className="p-3 font-semibold">{o.table.supplier}</TableHead>
+                  <TableHead className="p-3 font-semibold">{o.table.delivery}</TableHead>
+                  <TableHead className="p-3 font-semibold text-right">{o.table.value}</TableHead>
+                  <TableHead className="p-3 font-semibold text-center">{o.table.reminders}</TableHead>
+                  <TableHead className="p-3 font-semibold text-center">{o.table.status}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-border">
@@ -138,7 +150,7 @@ export default function OrdersPage() {
                         )}
                       </TableCell>
                       <TableCell className="p-3 text-center">
-                        <StatusIndicator status={po.status} />
+                        <StatusIndicator status={po.status} o={o} />
                       </TableCell>
                     </TableRow>
                   );
@@ -154,17 +166,17 @@ export default function OrdersPage() {
             <div className="space-y-5">
               {/* Header */}
               <div>
-                <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Order Details</span>
+                <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">{o.details}</span>
                 <h3 className="text-sm font-semibold text-foreground mt-1">{selectedOrder.id}</h3>
               </div>
 
               {/* Quick stats */}
               <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-2.5 text-sm">
                 {[
-                  { label: 'Supplier',           value: selectedOrder.supplier?.name },
-                  { label: 'Order Date',         value: selectedOrder.order_date },
-                  { label: 'Expected Delivery',  value: selectedOrder.expected_delivery },
-                  { label: 'Total Value',        value: `$${selectedOrder.total_value.toLocaleString(undefined, { minimumFractionDigits: 2 })}` },
+                  { label: o.stats.supplier, value: selectedOrder.supplier?.name },
+                  { label: o.stats.orderDate, value: selectedOrder.order_date },
+                  { label: o.stats.delivery, value: selectedOrder.expected_delivery },
+                  { label: o.stats.total, value: `$${selectedOrder.total_value.toLocaleString(undefined, { minimumFractionDigits: 2 })}` },
                 ].map(({ label, value }) => (
                   <div key={label} className="flex justify-between items-center">
                     <span className="text-muted-foreground">{label}</span>
@@ -176,7 +188,7 @@ export default function OrdersPage() {
               {/* Line items */}
               <div>
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block mb-2">
-                  Line Items
+                  {o.lineItems}
                 </span>
                 <ScrollArea className="border border-border rounded-lg p-3 max-h-36 bg-muted/20">
                   <div className="space-y-2.5 divide-y divide-border">
@@ -185,16 +197,16 @@ export default function OrdersPage() {
                         <div key={item.id || idx} className="pt-2.5 first:pt-0 flex justify-between text-xs">
                           <div>
                             <span className="font-medium text-foreground block">{item.description}</span>
-                            <span className="text-muted-foreground">Code: {item.item_code} · Qty: {item.quantity}</span>
+                            <span className="text-muted-foreground">{o.itemMeta(item.item_code, item.quantity)}</span>
                           </div>
                           <div className="text-right">
-                            <span className="text-muted-foreground block">${item.unit_price.toFixed(2)}/unit</span>
+                            <span className="text-muted-foreground block">${item.unit_price.toFixed(2)}{o.perUnit}</span>
                             <span className="font-medium text-foreground">${(item.quantity * item.unit_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                           </div>
                         </div>
                       ))
                     ) : (
-                      <span className="text-xs text-muted-foreground">No line item detail available.</span>
+                      <span className="text-xs text-muted-foreground">{o.noLineItems}</span>
                     )}
                   </div>
                 </ScrollArea>
@@ -203,11 +215,11 @@ export default function OrdersPage() {
               {/* Notes */}
               <div>
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block mb-2">
-                  Activity Notes
+                  {o.activityNotes}
                 </span>
                 <ScrollArea className="border border-border rounded-lg p-3 max-h-32 bg-muted/20">
                   <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">
-                    {selectedOrder.notes || 'No activity notes logged.'}
+                    {selectedOrder.notes || o.noNotes}
                   </p>
                 </ScrollArea>
               </div>
@@ -216,7 +228,7 @@ export default function OrdersPage() {
               <div className="border-t border-border pt-4 space-y-3">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
-                  <span className="text-xs font-semibold text-foreground">Simulate Supplier Reply</span>
+                  <span className="text-xs font-semibold text-foreground">{o.simulateTitle}</span>
                 </div>
                 <Select
                   value={scenario}
@@ -224,14 +236,14 @@ export default function OrdersPage() {
                   disabled={simulating}
                 >
                   <SelectTrigger className="w-full bg-background border border-border rounded-lg text-sm h-9">
-                    <SelectValue placeholder="Select scenario" />
+                    <SelectValue placeholder={o.scenarioPlaceholder} />
                   </SelectTrigger>
                   <SelectContent className="bg-popover border border-border text-popover-foreground">
-                    <SelectItem value="shipment_dispatched">🟢 Shipment Dispatched</SelectItem>
-                    <SelectItem value="delay_weather">🌧️ Weather Delay</SelectItem>
-                    <SelectItem value="delay_customs">🛂 Customs Hold</SelectItem>
-                    <SelectItem value="dispute_pricing">⚠️ Pricing Dispute</SelectItem>
-                    <SelectItem value="partial_shipment">📦 Partial Shipment</SelectItem>
+                    <SelectItem value="shipment_dispatched">{o.scenarios.shipment_dispatched}</SelectItem>
+                    <SelectItem value="delay_weather">{o.scenarios.delay_weather}</SelectItem>
+                    <SelectItem value="delay_customs">{o.scenarios.delay_customs}</SelectItem>
+                    <SelectItem value="dispute_pricing">{o.scenarios.dispute_pricing}</SelectItem>
+                    <SelectItem value="partial_shipment">{o.scenarios.partial_shipment}</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -244,13 +256,13 @@ export default function OrdersPage() {
                     ? <RefreshCw className="h-4 w-4 animate-spin" />
                     : <Play className="h-4 w-4 fill-current" />
                   }
-                  Simulate Reply
+                  {o.simulateBtn}
                 </Button>
               </div>
             </div>
           ) : (
             <div className="h-full flex items-center justify-center text-sm text-muted-foreground text-center">
-              Select a purchase order to view details
+              {o.selectToView}
             </div>
           )}
         </Card>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ScrollText, Search, Download, Filter, RefreshCw } from 'lucide-react';
+import { Search, Download, Filter, RefreshCw } from 'lucide-react';
 import { api } from '../../lib/api';
 import { AuditLogEntry } from '../../types';
 import { Button } from '@/components/ui/button';
@@ -9,11 +9,13 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useI18n } from '@/i18n/I18nProvider';
+import type { Dict } from '@/i18n';
 
 /* ── Action dot indicator ── */
 function ActionIndicator({ action }: { action: string }) {
   let dot = 'status-dot status-dot-muted';
-  let label = action.replace(/_/g, ' ');
+  const label = action.replace(/_/g, ' ');
 
   if (action.includes('ESCALATE'))   { dot = 'status-dot status-dot-danger'; }
   if (action.includes('APPROVE'))    { dot = 'status-dot status-dot-success'; }
@@ -29,7 +31,7 @@ function ActionIndicator({ action }: { action: string }) {
 }
 
 /* ── Severity dot indicator ── */
-function SeverityIndicator({ severity }: { severity?: string }) {
+function SeverityIndicator({ severity, l }: { severity?: string; l: Dict['log'] }) {
   if (!severity) return null;
   const map: Record<string, string> = {
     critical: 'status-dot status-dot-danger',
@@ -37,16 +39,20 @@ function SeverityIndicator({ severity }: { severity?: string }) {
     medium:   'status-dot status-dot-warning',
     low:      'status-dot status-dot-info',
   };
-  const dot = map[severity.toLowerCase()] ?? 'status-dot status-dot-muted';
+  const key = severity.toLowerCase();
+  const dot = map[key] ?? 'status-dot status-dot-muted';
+  const label = (l.severity as Record<string, string>)[key] ?? severity;
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground capitalize">
+    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
       <span className={dot} />
-      {severity}
+      {label}
     </span>
   );
 }
 
 export default function LogPage() {
+  const { t } = useI18n();
+  const l = t.log;
   const [logs,           setLogs]           = useState<AuditLogEntry[]>([]);
   const [searchQuery,    setSearchQuery]    = useState('');
   const [severityFilter, setSeverityFilter] = useState<string>('all');
@@ -64,7 +70,11 @@ export default function LogPage() {
     }
   };
 
-  useEffect(() => { fetchLogs(); }, []);
+  useEffect(() => {
+    (async () => {
+      await fetchLogs();
+    })();
+  }, []);
 
   const getFilteredLogs = () => {
     return logs.filter(log => {
@@ -114,7 +124,7 @@ export default function LogPage() {
       <div className="flex h-[80vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <RefreshCw className="h-8 w-8 animate-spin text-primary" />
-          <span className="text-sm text-muted-foreground">Loading audit logs…</span>
+          <span className="text-sm text-muted-foreground">{l.loading}</span>
         </div>
       </div>
     );
@@ -126,9 +136,9 @@ export default function LogPage() {
       {/* ── Header ── */}
       <div className="shrink-0 flex justify-between items-start gap-4 flex-col sm:flex-row">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Audit Trail Logs</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{l.title}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Immutable record of all automated and manual procurement decisions.
+            {l.desc}
           </p>
         </div>
         <div className="flex gap-2 shrink-0">
@@ -162,7 +172,7 @@ export default function LogPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search reasoning, actor, entity ID…"
+            placeholder={l.searchPlaceholder}
             className="w-full bg-background border border-border rounded-lg pl-9 pr-3 text-sm h-9"
           />
         </div>
@@ -170,18 +180,18 @@ export default function LogPage() {
         {/* Severity filter */}
         <div className="flex items-center gap-2 shrink-0">
           <span className="text-xs text-muted-foreground flex items-center gap-1">
-            <Filter className="h-3.5 w-3.5" /> Risk
+            <Filter className="h-3.5 w-3.5" /> {l.riskFilter}
           </span>
           <Select value={severityFilter} onValueChange={(val) => setSeverityFilter(val || 'all')}>
             <SelectTrigger className="bg-background border border-border rounded-lg text-xs h-9 w-28">
-              <SelectValue placeholder="All" />
+              <SelectValue placeholder={l.severity.all} />
             </SelectTrigger>
             <SelectContent className="bg-popover border border-border">
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="critical">Critical</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="low">Low</SelectItem>
+              <SelectItem value="all">{l.severity.all}</SelectItem>
+              <SelectItem value="critical">{l.severity.critical}</SelectItem>
+              <SelectItem value="high">{l.severity.high}</SelectItem>
+              <SelectItem value="medium">{l.severity.medium}</SelectItem>
+              <SelectItem value="low">{l.severity.low}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -189,14 +199,14 @@ export default function LogPage() {
         {/* Action filter */}
         <div className="flex items-center gap-2 shrink-0">
           <span className="text-xs text-muted-foreground flex items-center gap-1">
-            <Filter className="h-3.5 w-3.5" /> Action
+            <Filter className="h-3.5 w-3.5" /> {l.actionFilter}
           </span>
           <Select value={actionFilter} onValueChange={(val) => setActionFilter(val || 'all')}>
             <SelectTrigger className="bg-background border border-border rounded-lg text-xs h-9 w-40">
-              <SelectValue placeholder="All" />
+              <SelectValue placeholder={l.severity.all} />
             </SelectTrigger>
             <SelectContent className="bg-popover border border-border">
-              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="all">{l.severity.all}</SelectItem>
               {uniqueActions.map(action => (
                 <SelectItem key={action} value={action}>{action.replace(/_/g, ' ')}</SelectItem>
               ))}
@@ -208,8 +218,8 @@ export default function LogPage() {
       {/* ── Log list ── */}
       <Card className="vigil-card flex-1 p-5 flex flex-col min-h-0 overflow-hidden">
         <div className="flex justify-between items-center mb-4 shrink-0">
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Activity Log</span>
-          <span className="text-xs text-muted-foreground">{filteredLogs.length} events</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{l.activityLog}</span>
+          <span className="text-xs text-muted-foreground">{l.events(filteredLogs.length)}</span>
         </div>
 
         <ScrollArea className="flex-1 pr-1">
@@ -220,7 +230,7 @@ export default function LogPage() {
                   <div className="space-y-1.5">
                     <div className="flex items-center flex-wrap gap-3">
                       <ActionIndicator action={log.action} />
-                      <SeverityIndicator severity={log.severity} />
+                      <SeverityIndicator severity={log.severity} l={l} />
                       <span className="text-xs text-muted-foreground">
                         {log.entity_type.toUpperCase()}: {log.entity_id}
                       </span>
@@ -232,7 +242,7 @@ export default function LogPage() {
                     <span className="text-xs font-medium text-foreground/70 block mt-0.5">{log.actor}</span>
                     {log.confidence !== undefined && log.confidence !== null && (
                       <span className="text-xs text-muted-foreground block mt-0.5">
-                        {Math.round((log.confidence as number) * 100)}% confidence
+                        {l.confidence(Math.round((log.confidence as number) * 100))}
                       </span>
                     )}
                   </div>
@@ -240,7 +250,7 @@ export default function LogPage() {
               ))
             ) : (
               <div className="py-16 text-center text-sm text-muted-foreground">
-                No logs match the current filters.
+                {l.empty}
               </div>
             )}
           </div>

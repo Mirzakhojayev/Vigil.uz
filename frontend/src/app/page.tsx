@@ -21,9 +21,11 @@ export default function LandingPage() {
   const [isDemoOpen, setIsDemoOpen] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    // Clear previous auth state on landing
-    localStorage.removeItem('vigil_auth');
+    (() => {
+      setMounted(true);
+      // Clear previous auth state on landing
+      localStorage.removeItem('vigil_auth');
+    })();
   }, []);
 
   if (!mounted) {

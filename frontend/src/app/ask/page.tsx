@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useI18n } from '@/i18n/I18nProvider';
 
 interface Message {
   id: string;
@@ -16,13 +17,6 @@ interface Message {
   sources?: RAGSource[];
   isTyping?: boolean;
 }
-
-const SAMPLE_CHIPS = [
-  { text: 'Who has price deviation spikes?',  query: 'Which suppliers have had price anomalies recently?' },
-  { text: 'Duplicates with Meridian?',         query: 'Show me any duplicate invoices from Meridian Logistics.' },
-  { text: 'Spend on electronics?',             query: 'What is the total spend on electronics category?' },
-  { text: 'Which PO is overdue?',              query: 'Show me overdue orders and what reminders were sent.' },
-];
 
 function getSourceIcon(type: string) {
   switch (type) {
@@ -35,12 +29,12 @@ function getSourceIcon(type: string) {
 }
 
 export default function AskPage() {
+  const { t } = useI18n();
+  const k = t.ask;
+  // Welcome message text is rendered from the dictionary at render time (see
+  // below) so it stays reactive if the language is switched mid-session.
   const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'welcome',
-      sender: 'assistant',
-      text: "Hello! I'm Vigil, your AI procurement auditor. I have direct access to SQLite (structured data like totals and invoice lists) and ChromaDB (semantic search over emails, audit reasoning, and supplier profiles).\n\nAsk me anything about suppliers, purchase order delays, or flagged financial anomalies."
-    }
+    { id: 'welcome', sender: 'assistant', text: '' }
   ]);
   const [inputText,      setInputText]      = useState('');
   const [loading,        setLoading]        = useState(false);
@@ -74,10 +68,10 @@ export default function AskPage() {
           ? { id: typingMsgId, sender: 'assistant', text: res.answer, sources: res.sources }
           : msg
       ));
-    } catch (err: any) {
+    } catch (err) {
       setMessages(prev => prev.map(msg =>
         msg.id === typingMsgId
-          ? { id: typingMsgId, sender: 'assistant', text: `Sorry, an error occurred: ${err.message}` }
+          ? { id: typingMsgId, sender: 'assistant', text: k.errorPrefix(err instanceof Error ? err.message : String(err)) }
           : msg
       ));
     } finally {
@@ -90,9 +84,9 @@ export default function AskPage() {
 
       {/* ── Header ── */}
       <div className="shrink-0">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Ask RAG Assistant</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">{k.title}</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Query procurement databases using semantic search and direct SQL calculations.
+          {k.desc}
         </p>
       </div>
 
@@ -126,17 +120,17 @@ export default function AskPage() {
                       {msg.isTyping ? (
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                          Analyzing queries…
+                          {k.analyzing}
                         </div>
                       ) : (
-                        <div className="whitespace-pre-line leading-relaxed">{msg.text}</div>
+                        <div className="whitespace-pre-line leading-relaxed">{msg.id === 'welcome' ? k.welcome : msg.text}</div>
                       )}
 
                       {/* Source citations */}
                       {isAssistant && msg.sources && msg.sources.length > 0 && (
                         <div className="mt-3 pt-3 border-t border-border/60 space-y-2">
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block">
-                            Sources
+                            {k.sources}
                           </span>
                           <div className="flex flex-wrap gap-1.5">
                             {msg.sources.map((src) => (
@@ -174,10 +168,10 @@ export default function AskPage() {
           {messages.length === 1 && (
             <div className="shrink-0 mb-4 space-y-2">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">
-                Sample queries
+                {k.sampleQueries}
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {SAMPLE_CHIPS.map((chip, idx) => (
+                {k.chips.map((chip, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleSubmit(chip.query)}
@@ -200,7 +194,7 @@ export default function AskPage() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               disabled={loading}
-              placeholder="Ask about suppliers, invoices, price anomalies…"
+              placeholder={k.inputPlaceholder}
               className="flex-1 bg-background border border-border rounded-lg px-4 text-sm h-11 focus:border-primary"
             />
             <Button
@@ -217,9 +211,9 @@ export default function AskPage() {
         <Card className="vigil-card lg:col-span-4 p-4 flex flex-col h-full min-h-0">
           <div className="mb-4 shrink-0">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">
-              Citation Inspector
+              {k.citationInspector}
             </span>
-            <p className="text-sm font-medium text-foreground mt-0.5">Source Verification</p>
+            <p className="text-sm font-medium text-foreground mt-0.5">{k.sourceVerification}</p>
           </div>
 
           <div className="flex-1 border border-border rounded-lg overflow-hidden bg-muted/20 flex flex-col">
@@ -240,7 +234,7 @@ export default function AskPage() {
                   {/* Text snippet */}
                   <div>
                     <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block mb-2">
-                      Context Excerpt
+                      {k.contextExcerpt}
                     </span>
                     <p className="text-xs text-foreground/85 leading-relaxed bg-muted/50 border border-border rounded-lg p-3 whitespace-pre-wrap">
                       {selectedSource.text_snippet}
@@ -250,14 +244,14 @@ export default function AskPage() {
                   {/* Grounding note */}
                   <div className="flex items-start gap-2 bg-primary/5 border border-primary/15 rounded-lg p-3 text-xs text-muted-foreground">
                     <Sparkles className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                    <span>The AI synthesized its response using this specific segment retrieved from the procurement database.</span>
+                    <span>{k.groundingNote}</span>
                   </div>
                 </div>
               </ScrollArea>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-center p-5 gap-2">
                 <AlertCircle className="h-8 w-8 text-muted-foreground/40" />
-                <span className="text-sm text-muted-foreground">Click a source citation in the chat to inspect the raw context.</span>
+                <span className="text-sm text-muted-foreground">{k.inspectorEmpty}</span>
               </div>
             )}
           </div>

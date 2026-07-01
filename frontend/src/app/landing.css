@@ -670,7 +670,7 @@
 .lp-cta-title {
   font-size: clamp(26px, 3.5vw, 44px); font-weight: 700;
   line-height: 1.2; letter-spacing: -1px; margin-bottom: 20px;
-  max-width: 600px; margin-left: auto; margin-right: auto;
+  max-width: 1200px; margin-left: auto; margin-right: auto;
   color: #fff;
 }
 .lp-cta-body {

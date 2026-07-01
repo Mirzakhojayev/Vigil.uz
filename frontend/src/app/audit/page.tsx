@@ -1,25 +1,31 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, ShieldAlert, RefreshCw, HelpCircle } from 'lucide-react';
+import { Search, RefreshCw, HelpCircle } from 'lucide-react';
 import { api } from '../../lib/api';
 import { Invoice } from '../../types';
 import RiskScoreBar from '../../components/audit/RiskScoreBar';
 import FindingDetail from '../../components/audit/FindingDetail';
 import AuditActionPanel from '../../components/audit/AuditActionPanel';
-import AnomalyBadge from '../../components/audit/AnomalyBadge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { useI18n } from '@/i18n/I18nProvider';
+import type { Dict } from '@/i18n';
+
+const FILTER_TABS = ['all', 'flagged', 'approved', 'escalated'] as const;
+type FilterKey = (typeof FILTER_TABS)[number];
 
 /* ── Status dot indicator ── */
-function StatusIndicator({ status }: { status: string }) {
-  const map: Record<string, { dot: string; label: string }> = {
-    approved:  { dot: 'status-dot status-dot-success', label: 'Approved' },
-    escalated: { dot: 'status-dot status-dot-danger',  label: 'Escalated' },
-    paid:      { dot: 'status-dot status-dot-info',    label: 'Paid' },
+function StatusIndicator({ status, a }: { status: string; a: Dict['audit'] }) {
+  const dotMap: Record<string, string> = {
+    approved:  'status-dot status-dot-success',
+    escalated: 'status-dot status-dot-danger',
+    paid:      'status-dot status-dot-info',
   };
-  const { dot, label } = map[status] ?? { dot: 'status-dot status-dot-warning', label: 'Pending' };
+  const statusLabels = a.status as Record<string, string>;
+  const dot = dotMap[status] ?? 'status-dot status-dot-warning';
+  const label = statusLabels[status] ?? a.status.pending;
   return (
     <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
       <span className={dot} />
@@ -28,18 +34,13 @@ function StatusIndicator({ status }: { status: string }) {
   );
 }
 
-const FILTER_TABS = [
-  { type: 'all',       label: 'All' },
-  { type: 'flagged',   label: 'Flagged' },
-  { type: 'approved',  label: 'Approved' },
-  { type: 'escalated', label: 'Escalated' },
-] as const;
-
 export default function AuditPage() {
+  const { t } = useI18n();
+  const a = t.audit;
   const [invoices,          setInvoices]          = useState<Invoice[]>([]);
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
   const [searchQuery,       setSearchQuery]       = useState('');
-  const [filterType,        setFilterType]        = useState<'all' | 'flagged' | 'approved' | 'escalated'>('all');
+  const [filterType,        setFilterType]        = useState<FilterKey>('all');
   const [loading,           setLoading]           = useState(true);
   const [recalculating,     setRecalculating]     = useState(false);
 
@@ -60,15 +61,20 @@ export default function AuditPage() {
     }
   };
 
-  useEffect(() => { fetchInvoices(true); }, []);
+  useEffect(() => {
+    (async () => {
+      await fetchInvoices(true);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleRecalculate = async () => {
     setRecalculating(true);
     try {
       await api.runAudit();
       await fetchInvoices(false);
-    } catch (err: any) {
-      alert(`Audit scan failed: ${err.message}`);
+    } catch (err) {
+      alert(a.recalcFailed(err instanceof Error ? err.message : String(err)));
     } finally {
       setRecalculating(false);
     }
@@ -98,7 +104,7 @@ export default function AuditPage() {
       <div className="flex h-[80vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <RefreshCw className="h-8 w-8 animate-spin text-primary" />
-          <span className="text-sm text-muted-foreground">Loading audit workspace…</span>
+          <span className="text-sm text-muted-foreground">{a.loading}</span>
         </div>
       </div>
     );
@@ -110,9 +116,9 @@ export default function AuditPage() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shrink-0">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Audit Review Center</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{a.title}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Resolve price deviations, duplicate billing, split invoices, and vendor risk scores.
+            {a.desc}
           </p>
         </div>
         <Button
@@ -122,7 +128,7 @@ export default function AuditPage() {
           className="flex items-center gap-2 h-9 px-4 text-sm font-medium rounded-lg border border-border bg-card hover:bg-accent text-foreground disabled:opacity-50 cursor-pointer"
         >
           <RefreshCw className={`h-4 w-4 text-primary ${recalculating ? 'animate-spin' : ''}`} />
-          Recalculate Scores
+          {a.recalc}
         </Button>
       </div>
 
@@ -138,7 +144,7 @@ export default function AuditPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search invoice, supplier…"
+              placeholder={a.searchPlaceholder}
               className="w-full bg-background border border-border rounded-lg py-2 pl-9 pr-3 text-sm placeholder:text-muted-foreground h-9"
             />
           </div>
@@ -147,15 +153,15 @@ export default function AuditPage() {
           <div className="flex items-center gap-1 border-b border-border mb-4 shrink-0">
             {FILTER_TABS.map(tab => (
               <button
-                key={tab.type}
-                onClick={() => setFilterType(tab.type as any)}
+                key={tab}
+                onClick={() => setFilterType(tab)}
                 className={`px-3 pb-2 text-xs font-medium transition-colors cursor-pointer border-b-2 -mb-px ${
-                  filterType === tab.type
+                  filterType === tab
                     ? 'border-primary text-primary'
                     : 'border-transparent text-muted-foreground hover:text-foreground'
                 }`}
               >
-                {tab.label}
+                {a.filters[tab]}
               </button>
             ))}
           </div>
@@ -184,16 +190,16 @@ export default function AuditPage() {
                         <span className="text-xs font-semibold text-foreground block">
                           ${inv.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
-                        <StatusIndicator status={inv.status} />
+                        <StatusIndicator status={inv.status} a={a} />
                       </div>
                     </div>
-                    <RiskScoreBar score={inv.risk_score} />
+                    <RiskScoreBar score={inv.risk_score} label={a.riskLabel} />
                   </div>
                 );
               })
             ) : (
               <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-                No invoices match the current filter.
+                {a.emptyList}
               </div>
             )}
           </div>
@@ -206,7 +212,7 @@ export default function AuditPage() {
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-center gap-2">
               <HelpCircle className="h-8 w-8 text-muted-foreground/40" />
-              <span className="text-sm text-muted-foreground">Select an invoice to review findings</span>
+              <span className="text-sm text-muted-foreground">{a.selectToReview}</span>
             </div>
           )}
         </Card>
@@ -218,7 +224,7 @@ export default function AuditPage() {
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-center gap-2">
               <HelpCircle className="h-8 w-8 text-muted-foreground/40" />
-              <span className="text-sm text-muted-foreground">Select an invoice to record decisions</span>
+              <span className="text-sm text-muted-foreground">{a.selectToRecord}</span>
             </div>
           )}
         </Card>

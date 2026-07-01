@@ -67,11 +67,11 @@ export const api = {
     }).then(res => handleResponse<{ status: string; message: string }>(res)),
 
   // Agent Endpoints
-  runAgentCycle: (): Promise<{ status: string; emails_drafted: any[] }> =>
+  runAgentCycle: (): Promise<{ status: string; emails_drafted: unknown[] }> =>
     fetch(`${API_BASE}/agent/run`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-    }).then(res => handleResponse<{ status: string; emails_drafted: any[] }>(res)),
+    }).then(res => handleResponse<{ status: string; emails_drafted: unknown[] }>(res)),
 
   getEmails: (): Promise<AgentEmail[]> =>
     fetch(`${API_BASE}/agent/emails`).then(res => handleResponse<AgentEmail[]>(res)),

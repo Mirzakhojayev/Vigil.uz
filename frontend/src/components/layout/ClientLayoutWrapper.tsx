@@ -10,30 +10,29 @@ import { I18nProvider } from '@/i18n/I18nProvider';
 export default function ClientLayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [authenticated, setAuthenticated] = useState(false);
   const [checking, setChecking] = useState(true);
 
   const isLoginPage = pathname === '/';
 
   useEffect(() => {
-    if (isLoginPage) {
-      document.body.classList.remove('overflow-hidden');
-      document.body.classList.add('overflow-y-auto');
-      setChecking(false);
-      return;
-    } else {
+    (() => {
+      if (isLoginPage) {
+        document.body.classList.remove('overflow-hidden');
+        document.body.classList.add('overflow-y-auto');
+        setChecking(false);
+        return;
+      }
       document.body.classList.add('overflow-hidden');
       document.body.classList.remove('overflow-y-auto');
-    }
 
-    const auth = localStorage.getItem('vigil_auth');
-    if (auth === 'true') {
-      setAuthenticated(true);
-      setChecking(false);
-    } else {
-      // Redirect to login if not authenticated
-      router.push('/');
-    }
+      const auth = localStorage.getItem('vigil_auth');
+      if (auth === 'true') {
+        setChecking(false);
+      } else {
+        // Redirect to login if not authenticated
+        router.push('/');
+      }
+    })();
   }, [pathname, isLoginPage, router]);
 
   if (checking && !isLoginPage) {

@@ -26,10 +26,12 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Language>(DEFAULT_LANGUAGE);
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (isLanguage(saved)) {
-      setLangState(saved);
-    }
+    (() => {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (isLanguage(saved)) {
+        setLangState(saved);
+      }
+    })();
   }, []);
 
   const setLang = (next: Language) => {

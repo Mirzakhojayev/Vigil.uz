@@ -12,12 +12,12 @@ export const metadata: Metadata = {
 };
 
 // Applies the persisted theme to <html> before first paint. This keeps the
-// `dark` class consistent at hydration time and prevents a light-mode flash.
-// Must stay in sync with ThemeContext (key `vigil_theme`, default `dark`).
+// `dark` class consistent at hydration time and prevents a dark-mode flash.
+// Must stay in sync with ThemeContext (key `vigil_theme`, default `light`).
 const themeInitScript = `
 (function () {
   try {
-    var t = localStorage.getItem('vigil_theme') || 'dark';
+    var t = localStorage.getItem('vigil_theme') || 'light';
     document.documentElement.classList.toggle('dark', t === 'dark');
   } catch (e) {}
 })();

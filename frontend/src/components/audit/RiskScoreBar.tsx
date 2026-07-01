@@ -2,9 +2,10 @@ import React from 'react';
 
 interface RiskScoreBarProps {
   score: number;
+  label: string;
 }
 
-export default function RiskScoreBar({ score }: RiskScoreBarProps) {
+export default function RiskScoreBar({ score, label }: RiskScoreBarProps) {
   let barColor   = 'bg-emerald-500';
   let labelColor = 'text-emerald-600 dark:text-emerald-400';
 
@@ -22,7 +23,7 @@ export default function RiskScoreBar({ score }: RiskScoreBarProps) {
   return (
     <div className="w-full space-y-1">
       <div className="flex justify-between items-center text-xs">
-        <span className="text-muted-foreground">Risk</span>
+        <span className="text-muted-foreground">{label}</span>
         <span className={`font-semibold tabular-nums ${labelColor}`}>
           {score}/100
         </span>

@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
 import { TrendingUp } from 'lucide-react';
+import { useI18n } from '@/i18n/I18nProvider';
 
 interface PriceComparisonChartProps {
   itemCode: string;
@@ -8,12 +11,14 @@ interface PriceComparisonChartProps {
   deviationPct: number;
 }
 
-export default function PriceComparisonChart({ 
-  itemCode, 
-  invoicePrice, 
-  historicalAvg, 
-  deviationPct 
+export default function PriceComparisonChart({
+  itemCode,
+  invoicePrice,
+  historicalAvg,
+  deviationPct
 }: PriceComparisonChartProps) {
+  const { t } = useI18n();
+  const c = t.audit.chart;
   // Determine scale
   const maxVal = Math.max(invoicePrice, historicalAvg);
   const histHeight = `${(historicalAvg / maxVal) * 100}%`;
@@ -23,8 +28,8 @@ export default function PriceComparisonChart({
     <div className="bg-muted/50 border border-border rounded-xl p-5 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <span className="text-muted-foreground text-[10px] font-mono tracking-widest uppercase">Pricing Audit</span>
-          <h4 className="text-xs font-bold text-foreground font-mono mt-0.5">ITEM: {itemCode}</h4>
+          <span className="text-muted-foreground text-[10px] font-mono tracking-widest uppercase">{c.pricingAudit}</span>
+          <h4 className="text-xs font-bold text-foreground font-mono mt-0.5">{c.item}: {itemCode}</h4>
         </div>
         <div className="flex items-center gap-1 bg-rose-500/10 border border-rose-500/20 text-rose-500 dark:text-rose-400 px-2 py-0.5 rounded-md text-[10px] font-mono font-bold">
           <TrendingUp className="h-3 w-3" />
@@ -41,7 +46,7 @@ export default function PriceComparisonChart({
             className="w-full bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700/80 rounded-t-lg transition-all duration-300"
             style={{ height: histHeight }}
           />
-          <span className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest mt-1">HIST AVG</span>
+          <span className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest mt-1">{c.histAvg}</span>
         </div>
 
         {/* Invoice Bar */}
@@ -51,12 +56,12 @@ export default function PriceComparisonChart({
             className="w-full bg-gradient-to-t from-rose-600 to-rose-400 hover:from-rose-500 hover:to-rose-300 rounded-t-lg shadow transition-all duration-300"
             style={{ height: invHeight }}
           />
-          <span className="text-[10px] text-rose-500 dark:text-rose-400 font-mono uppercase tracking-widest mt-1">INVOICED</span>
+          <span className="text-[10px] text-rose-500 dark:text-rose-400 font-mono uppercase tracking-widest mt-1">{c.invoiced}</span>
         </div>
       </div>
-      
+
       <div className="text-[10px] font-mono text-muted-foreground text-center leading-relaxed">
-        CONTRACT COMPLIANCE ALERT: Unit billing exceeds agreed baseline of ${historicalAvg.toFixed(4)} by ${ (invoicePrice - historicalAvg).toFixed(4) } per unit.
+        {c.alert(historicalAvg.toFixed(4), (invoicePrice - historicalAvg).toFixed(4))}
       </div>
     </div>
   );

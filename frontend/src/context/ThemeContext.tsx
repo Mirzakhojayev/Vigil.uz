@@ -12,19 +12,21 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('dark'); // default to dark
+  const [theme, setTheme] = useState<Theme>('light'); // default to light
 
   useEffect(() => {
-    // Load theme from localStorage
-    const savedTheme = localStorage.getItem('vigil_theme') as Theme;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-    } else {
-      // Default to dark as requested
-      setTheme('dark');
-      document.documentElement.classList.add('dark');
-    }
+    (() => {
+      // Load theme from localStorage
+      const savedTheme = localStorage.getItem('vigil_theme') as Theme;
+      if (savedTheme) {
+        setTheme(savedTheme);
+        document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+      } else {
+        // Default to light as requested
+        setTheme('light');
+        document.documentElement.classList.remove('dark');
+      }
+    })();
   }, []);
 
   const toggleTheme = () => {

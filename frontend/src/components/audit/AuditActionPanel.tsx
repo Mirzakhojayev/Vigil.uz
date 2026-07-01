@@ -1,11 +1,13 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, AlertOctagon, MessageSquare, Send, Clock, User, RefreshCw } from 'lucide-react';
+import { ShieldCheck, AlertOctagon, MessageSquare, Send, User, RefreshCw } from 'lucide-react';
 import { api } from '../../lib/api';
 import { Invoice, AuditLogEntry } from '../../types';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useI18n } from '@/i18n/I18nProvider';
 
 interface AuditActionPanelProps {
   invoice: Invoice;
@@ -13,6 +15,9 @@ interface AuditActionPanelProps {
 }
 
 export default function AuditActionPanel({ invoice, onActionComplete }: AuditActionPanelProps) {
+  const { t } = useI18n();
+  const ap = t.audit.action;
+  const statusLabels = t.audit.status as Record<string, string>;
   const [noteText, setNoteText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [actionHistory, setActionHistory] = useState<AuditLogEntry[]>([]);
@@ -35,7 +40,10 @@ export default function AuditActionPanel({ invoice, onActionComplete }: AuditAct
   };
 
   useEffect(() => {
-    fetchHistory();
+    (async () => {
+      await fetchHistory();
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invoice.id]);
 
   const handleAction = async (action: 'approve' | 'escalate' | 'note') => {
@@ -47,8 +55,8 @@ export default function AuditActionPanel({ invoice, onActionComplete }: AuditAct
       setNoteText('');
       await fetchHistory();
       onActionComplete();
-    } catch (err: any) {
-      alert(`Action failed: ${err.message}`);
+    } catch (err) {
+      alert(ap.actionFailed(err instanceof Error ? err.message : String(err)));
     } finally {
       setSubmitting(false);
     }
@@ -58,23 +66,23 @@ export default function AuditActionPanel({ invoice, onActionComplete }: AuditAct
     <div className="flex flex-col h-full space-y-6">
       {/* Panel Title */}
       <div>
-        <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Decision Center</span>
-        <h3 className="text-sm font-semibold text-foreground mt-1">Audit Action Panel</h3>
+        <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">{ap.decisionCenter}</span>
+        <h3 className="text-sm font-semibold text-foreground mt-1">{ap.panelTitle}</h3>
       </div>
 
       {/* Quick Status Info */}
       <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-2 text-sm">
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Status</span>
-          <span className={`font-medium capitalize ${
+          <span className="text-muted-foreground">{ap.statusLabel}</span>
+          <span className={`font-medium ${
             invoice.status === 'approved'  ? 'text-emerald-500' :
             invoice.status === 'escalated' ? 'text-red-500'     : 'text-amber-500'
           }`}>
-            {invoice.status}
+            {statusLabels[invoice.status] ?? invoice.status}
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Amount</span>
+          <span className="text-muted-foreground">{ap.amountLabel}</span>
           <span className="font-semibold text-foreground">
             ${invoice.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
@@ -90,7 +98,7 @@ export default function AuditActionPanel({ invoice, onActionComplete }: AuditAct
           className="flex items-center justify-center gap-2 h-9 text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/8 hover:bg-emerald-500/15 border border-emerald-500/30 rounded-lg disabled:opacity-40 transition-colors cursor-pointer"
         >
           <ShieldCheck className="h-4 w-4" />
-          Approve
+          {ap.approve}
         </Button>
 
         <Button
@@ -100,7 +108,7 @@ export default function AuditActionPanel({ invoice, onActionComplete }: AuditAct
           className="flex items-center justify-center gap-2 h-9 text-sm font-medium text-red-600 dark:text-red-400 bg-red-500/8 hover:bg-red-500/15 border border-red-500/30 rounded-lg disabled:opacity-40 transition-colors cursor-pointer"
         >
           <AlertOctagon className="h-4 w-4" />
-          Escalate
+          {ap.escalate}
         </Button>
       </div>
 
@@ -108,14 +116,14 @@ export default function AuditActionPanel({ invoice, onActionComplete }: AuditAct
       <div className="space-y-2">
         <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
           <MessageSquare className="h-3.5 w-3.5 text-primary" />
-          Add Audit Note
+          {ap.addNote}
         </label>
         <div className="relative">
           <Textarea
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}
             disabled={submitting}
-            placeholder="Document compliance checks, override reasoning, or notes…"
+            placeholder={ap.notePlaceholder}
             rows={4}
             className="w-full bg-background border border-border rounded-lg p-3 text-sm resize-none placeholder:text-muted-foreground/60 pr-12"
           />
@@ -132,7 +140,7 @@ export default function AuditActionPanel({ invoice, onActionComplete }: AuditAct
 
       {/* Audit Action Timeline (History) */}
       <div className="flex-1 flex flex-col min-h-[180px]">
-        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Decision History</span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">{ap.decisionHistory}</span>
         <ScrollArea className="flex-1 bg-muted/20 border border-border rounded-lg p-4 relative">
           {historyLoading && actionHistory.length === 0 ? (
             <div className="absolute inset-0 flex items-center justify-center">
@@ -170,7 +178,7 @@ export default function AuditActionPanel({ invoice, onActionComplete }: AuditAct
             </div>
           ) : (
             <div className="h-full flex items-center justify-center text-muted-foreground text-xs font-mono text-center px-4 py-8">
-              No manual overrides or logs documented for this invoice.
+              {ap.noHistory}
             </div>
           )}
         </ScrollArea>
