@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { User, Lock, AlertCircle, ChevronRight } from 'lucide-react';
+import { useI18n } from '@/i18n/I18nProvider';
 
 interface LoginModalProps {
   onClose: () => void;
@@ -10,6 +11,8 @@ interface LoginModalProps {
 
 export default function LoginModal({ onClose }: LoginModalProps) {
   const router = useRouter();
+  const { t } = useI18n();
+  const m = t.loginModal;
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +27,7 @@ export default function LoginModal({ onClose }: LoginModalProps) {
         localStorage.setItem('vigil_auth', 'true');
         router.push('/dashboard');
       } else {
-        setError('ACCESS DENIED: Invalid Auditor Credentials.');
+        setError(m.error);
         setLoading(false);
       }
     }, 1000);
@@ -135,13 +138,13 @@ export default function LoginModal({ onClose }: LoginModalProps) {
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div style={{ fontSize: '10px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 600, color: 'var(--blue-lt)', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>
-            Auditor Cryptographic Node
+            {m.brand}
           </div>
           <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-0.5px', marginBottom: '6px' }}>
-            Initialize Gateway
+            {m.title}
           </div>
           <div style={{ fontSize: '13px', color: 'var(--text-2)', lineHeight: 1.6 }}>
-            Verify credentials to access secure audit trails.
+            {m.desc}
           </div>
         </div>
 
@@ -156,7 +159,7 @@ export default function LoginModal({ onClose }: LoginModalProps) {
         {/* Form */}
         <form onSubmit={handleLogin}>
           <div style={{ marginBottom: '14px' }}>
-            <label className="lm-label">Username</label>
+            <label className="lm-label">{m.username}</label>
             <div className="lm-input-wrap">
               <span className="lm-input-icon"><User size={14} /></span>
               <input
@@ -172,7 +175,7 @@ export default function LoginModal({ onClose }: LoginModalProps) {
           </div>
 
           <div style={{ marginBottom: '6px' }}>
-            <label className="lm-label">Access Key</label>
+            <label className="lm-label">{m.accessKey}</label>
             <div className="lm-input-wrap">
               <span className="lm-input-icon"><Lock size={14} /></span>
               <input
@@ -197,12 +200,12 @@ export default function LoginModal({ onClose }: LoginModalProps) {
                 color: 'var(--blue-lt)', cursor: 'pointer', textDecoration: 'underline'
               }}
             >
-              Autofill Compliance Credentials
+              {m.autofill}
             </button>
           </div>
 
           <button type="submit" className="lm-submit" disabled={loading}>
-            {loading ? 'INITIALIZING...' : 'ESTABLISH CONNECTION'}
+            {loading ? m.submitting : m.submit}
             {!loading && <ChevronRight size={14} />}
           </button>
         </form>
@@ -215,8 +218,8 @@ export default function LoginModal({ onClose }: LoginModalProps) {
           fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-3)',
           lineHeight: 1.7
         }}>
-          SECURE SHA-256 CONSOLE // MOCK NETWORK INTERFACE<br />
-          DEV TOKEN: auditor@vigil.ai / password123
+          {m.footer}<br />
+          {m.devToken}
         </div>
       </div>
     </div>

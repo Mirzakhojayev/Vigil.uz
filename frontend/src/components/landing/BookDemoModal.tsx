@@ -1,18 +1,24 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useI18n } from '@/i18n/I18nProvider';
 
 interface BookDemoModalProps {
   onClose: () => void;
 }
 
-const SLOTS = ['Tomorrow 10:00 AM', 'Tomorrow 2:00 PM', 'Wed 11:00 AM', 'Wed 4:00 PM'];
+// Roles/slots are stored as stable keys/indices (not labels) so the selection
+// survives a language switch while the modal is open.
+const ROLE_KEYS = ['cfo', 'auditor', 'manager', 'dev'] as const;
+type RoleKey = (typeof ROLE_KEYS)[number];
 
 export default function BookDemoModal({ onClose }: BookDemoModalProps) {
+  const { t } = useI18n();
+  const m = t.demoModal;
   const [email, setEmail] = useState('');
   const [company, setCompany] = useState('');
-  const [role, setRole] = useState('VP Finance / CFO');
-  const [slot, setSlot] = useState(SLOTS[0]);
+  const [role, setRole] = useState<RoleKey>('cfo');
+  const [slotIndex, setSlotIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -28,8 +34,8 @@ export default function BookDemoModal({ onClose }: BookDemoModalProps) {
   const handleClose = () => {
     setEmail('');
     setCompany('');
-    setRole('VP Finance / CFO');
-    setSlot(SLOTS[0]);
+    setRole('cfo');
+    setSlotIndex(0);
     setSubmitting(false);
     setSuccess(false);
     onClose();
@@ -138,18 +144,18 @@ export default function BookDemoModal({ onClose }: BookDemoModalProps) {
               {/* Header */}
               <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                 <div style={{ fontSize: '10px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 600, color: 'var(--blue-lt)', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>
-                  Autonomous Procurement Command
+                  {m.brand}
                 </div>
                 <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-0.5px', marginBottom: '6px' }}>
-                  Book a Private Demo
+                  {m.title}
                 </div>
                 <div style={{ fontSize: '13px', color: 'var(--text-2)', lineHeight: 1.6 }}>
-                  Schedule a live walk-through to see Vigil in action on your ERP dataset.
+                  {m.desc}
                 </div>
               </div>
 
               <form onSubmit={handleSubmit}>
-                <label className="bd-label">Work Email</label>
+                <label className="bd-label">{m.workEmail}</label>
                 <input
                   className="bd-input"
                   type="email"
@@ -159,7 +165,7 @@ export default function BookDemoModal({ onClose }: BookDemoModalProps) {
                   placeholder="you@company.com"
                 />
 
-                <label className="bd-label">Company Name</label>
+                <label className="bd-label">{m.company}</label>
                 <input
                   className="bd-input"
                   type="text"
@@ -169,26 +175,25 @@ export default function BookDemoModal({ onClose }: BookDemoModalProps) {
                   placeholder="Acme Corp"
                 />
 
-                <label className="bd-label">Your Role</label>
+                <label className="bd-label">{m.role}</label>
                 <select
                   className="bd-input"
                   value={role}
-                  onChange={(e) => setRole(e.target.value)}
+                  onChange={(e) => setRole(e.target.value as RoleKey)}
                 >
-                  <option>VP Finance / CFO</option>
-                  <option>Internal Auditor</option>
-                  <option>Procurement Manager</option>
-                  <option>Developer / Ops</option>
+                  {ROLE_KEYS.map((key) => (
+                    <option key={key} value={key}>{m.roles[key]}</option>
+                  ))}
                 </select>
 
-                <label className="bd-label">Preferred Time Slot</label>
+                <label className="bd-label">{m.slotLabel}</label>
                 <div className="bd-slots">
-                  {SLOTS.map((s) => (
+                  {m.slots.map((s, i) => (
                     <button
-                      key={s}
+                      key={i}
                       type="button"
-                      className={`bd-slot${slot === s ? ' bd-slot-active' : ''}`}
-                      onClick={() => setSlot(s)}
+                      className={`bd-slot${slotIndex === i ? ' bd-slot-active' : ''}`}
+                      onClick={() => setSlotIndex(i)}
                     >
                       {s}
                     </button>
@@ -196,7 +201,7 @@ export default function BookDemoModal({ onClose }: BookDemoModalProps) {
                 </div>
 
                 <button type="submit" className="bd-submit" disabled={submitting}>
-                  {submitting ? '⏳ Scheduling...' : '→ Confirm Appointment'}
+                  {submitting ? m.scheduling : m.confirm}
                 </button>
               </form>
             </>
@@ -204,14 +209,12 @@ export default function BookDemoModal({ onClose }: BookDemoModalProps) {
             <div style={{ textAlign: 'center', padding: '24px 0' }}>
               <div className="bd-success-icon">✓</div>
               <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-1)', marginBottom: '10px' }}>
-                Session Confirmed
+                {m.successTitle}
               </div>
               <div style={{ fontSize: '13px', color: 'var(--text-2)', lineHeight: 1.7, marginBottom: '24px' }}>
-                Your demo for <strong style={{ color: 'var(--text-1)' }}>{slot}</strong> is booked.
-                A calendar invite will be sent to{' '}
-                <strong style={{ color: 'var(--text-1)' }}>{email}</strong>.
+                {m.successBody(m.slots[slotIndex], email)}
               </div>
-              <button className="bd-dismiss" onClick={handleClose}>Close</button>
+              <button className="bd-dismiss" onClick={handleClose}>{m.close}</button>
             </div>
           )}
         </div>

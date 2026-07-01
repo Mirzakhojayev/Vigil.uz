@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { RefreshCw } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { ThemeProvider } from '@/context/ThemeContext';
-import { LanguageProvider } from '@/context/LanguageContext';
+import { I18nProvider } from '@/i18n/I18nProvider';
 
 export default function ClientLayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -50,16 +50,16 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
   if (isLoginPage) {
     return (
       <ThemeProvider>
-        <LanguageProvider>
+        <I18nProvider>
           {children}
-        </LanguageProvider>
+        </I18nProvider>
       </ThemeProvider>
     );
   }
 
   return (
     <ThemeProvider>
-      <LanguageProvider>
+      <I18nProvider>
         <div className="h-full w-full flex overflow-hidden">
           {/* Sidebar Nav */}
           <Sidebar />
@@ -71,7 +71,7 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
             </div>
           </main>
         </div>
-      </LanguageProvider>
+      </I18nProvider>
     </ThemeProvider>
   );
 }
